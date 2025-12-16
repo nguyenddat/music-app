@@ -11,15 +11,15 @@ import {
     ScrollView,
     Alert,
     ActivityIndicator,
-    Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS } from '../../constants/colors';
 import { useAuth } from '../../hooks/useAuth';
-import Input from '../../components/Input';
-import PasswordInput from '../../components/PasswordInput';
+import GradientBackground from '../../components/GradientBackground';
+import GlassContainer from '../../components/GlassContainer';
 
 const RegisterScreen = () => {
     const navigation = useNavigation();
@@ -72,101 +72,165 @@ const RegisterScreen = () => {
     }, [form, register]);
 
     return (
-        <SafeAreaView style={styles.container}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-            >
-                <ScrollView contentContainerStyle={styles.scrollContent}>
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <TouchableOpacity
-                            style={styles.backButton}
-                            onPress={() => navigation.goBack()}
-                        >
-                            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-                        </TouchableOpacity>
-                    </View>
+        <GradientBackground>
+            <SafeAreaView style={styles.container}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={{ flex: 1 }}
+                >
+                    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                        {/* Header */}
+                        <View style={styles.header}>
+                            <TouchableOpacity
+                                style={styles.backButtonWrapper}
+                                onPress={() => navigation.goBack()}
+                            >
+                                <LinearGradient
+                                    colors={['rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.7)']}
+                                    style={styles.backButton}
+                                >
+                                    <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
 
-                    {/* Title */}
-                    <View style={styles.titleSection}>
-                        <Text style={styles.title}>Tạo tài khoản</Text>
-                        <Text style={styles.subtitle}>
-                            Đăng ký để bắt đầu trải nghiệm âm nhạc.
-                        </Text>
-                    </View>
+                        {/* Title */}
+                        <View style={styles.titleSection}>
+                            <Text style={styles.title}>Tạo tài khoản</Text>
+                            <Text style={styles.subtitle}>
+                                Đăng ký để bắt đầu trải nghiệm âm nhạc.
+                            </Text>
+                        </View>
 
-                    {/* Error */}
-                    {error && (
-                        <Text style={styles.errorText}>{error}</Text>
-                    )}
+                        {/* Form */}
+                        <GlassContainer style={styles.formContainer} intensity="medium">
+                            {/* Error */}
+                            {error ? (
+                                <View style={styles.errorContainer}>
+                                    <Text style={styles.errorText}>{error}</Text>
+                                </View>
+                            ) : null}
 
-                    {/* Form */}
-                    <View style={styles.form}>
-                        {/* Full name */}
-                        <Input
-                            icon="person-outline"
-                            placeholder="Họ và tên"
-                            value={form.fullName}
-                            editable={!loading}
-                            onChangeText={v => updateField('fullName', v)}
-                        />
+                            {/* Full name */}
+                            <Text style={styles.label}>Họ và tên</Text>
+                            <View style={styles.inputWrapper}>
+                                <Ionicons name="person-outline" size={22} color={COLORS.primary} style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Ví dụ: Nguyễn Văn A"
+                                    placeholderTextColor={COLORS.textMuted}
+                                    value={form.fullName}
+                                    onChangeText={v => updateField('fullName', v)}
+                                    editable={!loading}
+                                    underlineColorAndroid="transparent"
+                                />
+                            </View>
 
-                        {/* Email */}
-                        <Input
-                            icon="mail-outline"
-                            placeholder="Email"
-                            value={form.email}
-                            editable={!loading}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            onChangeText={v => updateField('email', v)}
-                        />
+                            {/* Email */}
+                            <Text style={styles.label}>Email</Text>
+                            <View style={styles.inputWrapper}>
+                                <Ionicons name="mail-outline" size={22} color={COLORS.primary} style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="name@example.com"
+                                    placeholderTextColor={COLORS.textMuted}
+                                    value={form.email}
+                                    onChangeText={v => updateField('email', v)}
+                                    editable={!loading}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    underlineColorAndroid="transparent"
+                                />
+                            </View>
 
-                        {/* Password */}
-                        <PasswordInput
-                            placeholder="Mật khẩu"
-                            value={form.password}
-                            visible={showPassword}
-                            setVisible={setShowPassword}
-                            editable={!loading}
-                            onChangeText={v => updateField('password', v)}
-                        />
+                            {/* Password */}
+                            <Text style={styles.label}>Mật khẩu</Text>
+                            <View style={styles.inputWrapper}>
+                                <Ionicons name="lock-closed-outline" size={22} color={COLORS.primary} style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Tạo mật khẩu"
+                                    placeholderTextColor={COLORS.textMuted}
+                                    value={form.password}
+                                    onChangeText={v => updateField('password', v)}
+                                    editable={!loading}
+                                    secureTextEntry={!showPassword}
+                                    underlineColorAndroid="transparent"
+                                />
+                                <TouchableOpacity
+                                    onPress={() => setShowPassword(!showPassword)}
+                                    style={styles.eyeIcon}
+                                >
+                                    <Ionicons
+                                        name={showPassword ? "eye-outline" : "eye-off-outline"}
+                                        size={22}
+                                        color={COLORS.primary}
+                                    />
+                                </TouchableOpacity>
+                            </View>
 
-                        {/* Confirm password */}
-                        <PasswordInput
-                            placeholder="Xác nhận mật khẩu"
-                            value={form.confirmPassword}
-                            visible={showConfirmPassword}
-                            setVisible={setShowConfirmPassword}
-                            editable={!loading}
-                            onChangeText={v => updateField('confirmPassword', v)}
-                        />
+                            {/* Confirm password */}
+                            <Text style={styles.label}>Xác nhận mật khẩu</Text>
+                            <View style={styles.inputWrapper}>
+                                <Ionicons name="lock-closed-outline" size={22} color={COLORS.primary} style={styles.inputIcon} />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Nhập lại mật khẩu"
+                                    placeholderTextColor={COLORS.textMuted}
+                                    value={form.confirmPassword}
+                                    onChangeText={v => updateField('confirmPassword', v)}
+                                    editable={!loading}
+                                    secureTextEntry={!showConfirmPassword}
+                                    underlineColorAndroid="transparent"
+                                />
+                                <TouchableOpacity
+                                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    style={styles.eyeIcon}
+                                >
+                                    <Ionicons
+                                        name={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
+                                        size={22}
+                                        color={COLORS.primary}
+                                    />
+                                </TouchableOpacity>
+                            </View>
 
-                        {/* Button */}
-                        <TouchableOpacity
-                            style={[styles.registerButton, loading && { opacity: 0.7 }]}
-                            onPress={handleRegister}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color={COLORS.white} />
-                            ) : (
-                                <Text style={styles.registerButtonText}>Đăng ký</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
+                            {/* Button */}
+                            <TouchableOpacity
+                                style={[styles.registerButtonShadow, loading && styles.disabledButton]}
+                                onPress={handleRegister}
+                                disabled={loading}
+                                activeOpacity={0.8}
+                            >
+                                <LinearGradient
+                                    colors={['#FF8ACF', '#7B6CFF']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.registerButton}
+                                >
+                                    {loading ? (
+                                        <ActivityIndicator color={COLORS.white} />
+                                    ) : (
+                                        <>
+                                            <Text style={styles.registerButtonText}>Đăng ký</Text>
+                                            <Ionicons name="arrow-forward" size={22} color={COLORS.white} style={styles.buttonIcon} />
+                                        </>
+                                    )}
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </GlassContainer>
 
-                    {/* Footer */}
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>Đã có tài khoản? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Login' as never)}>
-                            <Text style={styles.loginText}>Đăng nhập ngay</Text>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+                        {/* Footer */}
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Đã có tài khoản? </Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('Login' as never)}>
+                                <Text style={styles.loginText}>Đăng nhập ngay</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
+        </GradientBackground>
     );
 };
 
@@ -174,82 +238,159 @@ const RegisterScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
     },
     scrollContent: {
         flexGrow: 1,
         paddingHorizontal: 24,
+        paddingBottom: 40,
     },
     header: {
         marginTop: 20,
-        marginBottom: 20,
+        marginBottom: 40,
+    },
+    backButtonWrapper: {
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
     },
     backButton: {
-        width: 40,
-        height: 40,
+        width: 48,
+        height: 48,
         justifyContent: 'center',
         alignItems: 'center',
+        borderRadius: 24,
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.6)',
+        overflow: 'hidden',
+    },
+    titleSection: {
+        marginBottom: 40,
+    },
+    title: {
+        fontSize: 36,
+        fontWeight: 'bold',
+        color: COLORS.white,
+        marginBottom: 12,
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 8,
+    },
+    subtitle: {
+        fontSize: 17,
+        color: 'rgba(255, 255, 255, 0.9)',
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
+    },
+    formContainer: {
+        paddingVertical: 36,
+        paddingHorizontal: 24,
+        marginBottom: 24,
+    },
+    label: {
+        fontSize: 15,
+        color: COLORS.text,
+        marginBottom: 10,
+        fontWeight: '700',
+        marginLeft: 4,
+    },
+    inputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
         borderRadius: 20,
-        backgroundColor: COLORS.white,
-        shadowColor: COLORS.glassShadow,
+        marginBottom: 24,
+        paddingHorizontal: 18,
+        height: 60,
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 1)',
+        shadowColor: COLORS.primary,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-        elevation: 3,
+        elevation: 2,
+        overflow: 'hidden',
     },
-    titleSection: {
-        marginBottom: 30,
+    inputIcon: {
+        marginRight: 14,
     },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
+    input: {
+        flex: 1,
         color: COLORS.text,
-        marginBottom: 10,
-    },
-    subtitle: {
         fontSize: 16,
-        color: COLORS.textSecondary,
+        height: '100%',
+        fontWeight: '500',
+    },
+    eyeIcon: {
+        padding: 10,
+    },
+    errorContainer: {
+        backgroundColor: 'rgba(252, 129, 129, 0.15)',
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(252, 129, 129, 0.3)',
+        overflow: 'hidden',
     },
     errorText: {
-        color: 'red',
-        marginBottom: 20,
+        color: COLORS.error,
         textAlign: 'center',
+        fontWeight: '600',
+        fontSize: 14,
     },
-    form: {
-        marginBottom: 30,
+    registerButtonShadow: {
+        shadowColor: '#FF8ACF',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 10,
+        marginTop: 8,
+        borderRadius: 30,
+        overflow: 'hidden',
+    },
+    disabledButton: {
+        opacity: 0.7,
     },
     registerButton: {
-        backgroundColor: COLORS.primary,
-        height: 56,
-        borderRadius: 28,
+        height: 60,
+        borderRadius: 30,
+        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 10,
-        shadowColor: COLORS.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
+        overflow: 'hidden',
     },
     registerButtonText: {
         color: COLORS.white,
-        fontSize: 18,
+        fontSize: 19,
         fontWeight: 'bold',
+        letterSpacing: 0.5,
+    },
+    buttonIcon: {
+        marginLeft: 12,
     },
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: 'auto',
-        marginBottom: 30,
+        marginBottom: 20,
     },
     footerText: {
-        color: COLORS.textSecondary,
+        color: 'rgba(255, 255, 255, 0.9)',
         fontSize: 16,
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
     },
     loginText: {
-        color: COLORS.primary,
+        color: COLORS.white,
         fontSize: 16,
         fontWeight: 'bold',
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
     },
 });
 
