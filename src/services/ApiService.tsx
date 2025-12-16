@@ -1,0 +1,46 @@
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { API_BASE_URL } from '../config/env.config';
+
+// Axios Instance
+const api: AxiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Axios Interceptors
+api.interceptors.request.use(
+    async (config: InternalAxiosRequestConfig) => {
+        try {
+            const token = await AsyncStorage.getItem('userToken');
+            if (token && config.headers) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        } catch (error) {
+            return config;
+        }
+    },
+    (error: AxiosError) => {
+        return Promise.reject(error);
+    }
+);
+
+// Axios Error Handler
+api.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    async (error: AxiosError) => {
+        if (error.response?.status === 401) {
+            await AsyncStorage.removeItem('userToken');
+        }
+        return Promise.reject(error);
+    }
+);
+
+export default api;
