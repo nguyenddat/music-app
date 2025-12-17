@@ -1,47 +1,85 @@
 export const COLORS = {
-    // Phông màu
-    primary: '#7B6CFF',
-    primaryLight: '#B9B3FF',
-    primaryDark: '#5B4FE5',
+    // === PHÂN CẤP MÀU CHÍNH (BRAND COLORS) ===
+    // Primary: Màu Cam Đào nổi bật nhất trên nền tối (Dùng cho nút chính, active state)
+    primary: '#FFA586',
+    primaryLight: '#FFC2A8', // Màu cam nhạt hơn (cho hover hoặc background nhẹ)
+    primaryDark: '#D68266',  // Màu cam đậm hơn
 
-    secondary: '#FF8ACF',
-    secondaryLight: '#FFD1E8',
+    // Secondary: Màu Đỏ Thẫm (Dùng cho gradient, nút phụ)
+    secondary: '#B51A2B',
+    secondaryLight: '#D4384B',
+    secondaryDark: '#8F1220',
 
-    accent: '#8FE3FF',
+    // Accent: Màu Đỏ Tía đậm (Dùng cho bóng đổ, điểm nhấn sâu)
+    accent: '#541A2E',
 
-    // Nền
-    background: '#F9FAFF',
-    backgroundGradientStart: '#F3F1FF',
-    backgroundGradientEnd: '#FFFFFF',
+    // === MÀU NỀN & BỐ CỤC (BACKGROUNDS) ===
+    // Background chính: Xanh đen đậm nhất
+    background: '#161E2F',
 
-    // Text
-    text: '#2D2E4A',
-    textSecondary: '#6B6F9D',
-    textMuted: '#A1A4C8',
-    textLight: '#FFFFFF',
+    // Surface/Card: Xanh đen vừa (Dùng cho thẻ bài hát, thanh player)
+    surface: '#242F49',
 
-    // Icons / Divider
-    icon: '#7B6CFF',
-    iconMuted: '#B6B8E5',
-    divider: 'rgba(0, 0, 0, 0.05)',
+    // Border/Divider: Xanh xám (Dùng cho đường kẻ chia cách)
+    border: '#384358',
 
-    // Status
+    // Gradient nền tổng thể (Ví dụ: từ Đỏ tía lên Xanh đen)
+    backgroundGradientStart: '#541A2E',
+    backgroundGradientEnd: '#161E2F',
+
+    // === TYPOGRAPHY (TEXT) ===
+    // Text chính: Trắng (Bắt buộc cho Dark Mode để dễ đọc)
+    text: '#FFFFFF',
+
+    // Text phụ: Xám xanh (Lấy từ màu nhạt nhất trong nhóm xanh) hoặc Cam nhạt
+    textSecondary: '#A0AEC0',
+
+    // Text mờ: Xanh xám đậm
+    textMuted: '#384358',
+
+    // Text highlight: Cam đào (Dùng cho các từ khóa nhấn mạnh)
+    textHighlight: '#FFA586',
+
+    // === ICONS & UI ELEMENTS ===
+    icon: '#FFA586',        // Icon chính theo màu Primary
+    iconInactive: '#384358', // Icon chưa active theo màu Border
+    divider: 'rgba(56, 67, 88, 0.5)', // Dùng màu #384358 với opacity
+
+    // === STATUS (Trạng thái) ===
+    // Điều chỉnh nhẹ để dịu mắt hơn trên nền tối
     success: '#4FD1C5',
     warning: '#F6AD55',
-    error: '#FC8181',
+    error: '#FF6B6B', // Đỏ tươi hơn chút để báo lỗi rõ trên nền tối
     info: '#63B3ED',
 
-    // Glassmorphism
-    glassBorder: 'rgba(255, 255, 255, 0.35)',
-    glassShadow: 'rgba(123, 108, 255, 0.25)',
+    // === GLASSMORPHISM (Hiệu ứng kính) ===
+    // Hiệu ứng kính trên nền tối cần border sáng mờ và nền tối có độ trong suốt
+    glassBg: 'rgba(36, 47, 73, 0.6)', // Dựa trên màu Surface #242F49
+    glassBorder: 'rgba(255, 255, 255, 0.1)',
+    glassShadow: 'rgba(0, 0, 0, 0.4)',
 
-    // Gradients (Now Playing)
-    gradientPrimary: ['#7B6CFF', '#9F8CFF'],
-    gradientSecondary: ['#FF8ACF', '#FFC1E3'],
-    gradientBackground: ['#F3F1FF', '#FFFFFF'],
+    // === GRADIENTS ===
+    // Gradient chính: Cam đào sang Đỏ thẫm (Rất đẹp cho nút bấm hoặc Card "Now Playing")
+    gradientPrimary: ['#FFA586', '#B51A2B'],
 
-    // Base
+    // Gradient phụ: Đỏ thẫm sang Đỏ tía
+    gradientSecondary: ['#B51A2B', '#541A2E'],
+
+    // Gradient Aurora (Cực quang): Dùng làm nền mờ phía sau
+    gradientAurora: ['#161E2F', '#B51A2B', '#FFA586'],
+
+    // === BASE COLORS ===
     white: '#FFFFFF',
     black: '#000000',
     transparent: 'transparent',
+
+    // === PALETTE GỐC (Tham chiếu từ ảnh) ===
+    palette: {
+        deepBlue: '#161E2F',  //
+        navy: '#242F49',      //
+        slate: '#384358',     //
+        peach: '#FFA586',     //
+        crimson: '#B51A2B',   //
+        burgundy: '#541A2E',  //
+    }
 } as const;

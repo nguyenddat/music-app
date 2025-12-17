@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
@@ -8,19 +8,27 @@ interface InputProps extends TextInputProps {
 }
 
 const Input: React.FC<InputProps> = ({ icon, style, ...props }) => {
+    const [isFocused, setIsFocused] = useState(false);
+
     return (
-        <View style={styles.inputContainer}>
+        <View style={[
+            styles.inputContainer,
+            isFocused && styles.inputContainerFocused
+        ]}>
             {icon && (
                 <Ionicons
                     name={icon as any}
                     size={20}
-                    color={COLORS.textMuted || '#888'}
+                    color={isFocused ? COLORS.primary : COLORS.textSecondary}
                     style={styles.inputIcon}
                 />
             )}
             <TextInput
                 style={[styles.input, style]}
-                placeholderTextColor={COLORS.textMuted || '#888'}
+                placeholderTextColor={COLORS.textSecondary}
+                selectionColor={COLORS.primary}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 {...props}
             />
         </View>
@@ -31,27 +39,27 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.white || '#fff',
-        borderRadius: 15,
-        marginBottom: 20,
-        paddingHorizontal: 15,
+        backgroundColor: COLORS.surface,
+        borderRadius: 16,
+        marginBottom: 16,
+        paddingHorizontal: 16,
         height: 56,
-        shadowColor: COLORS.glassShadow || '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 2,
-        borderWidth: 1,
-        borderColor: COLORS.transparent || 'transparent',
+        borderWidth: 1.5,
+        borderColor: COLORS.border,
+    },
+    inputContainerFocused: {
+        borderColor: COLORS.primary,
+        backgroundColor: COLORS.surface,
     },
     inputIcon: {
-        marginRight: 10,
+        marginRight: 12,
     },
     input: {
         flex: 1,
-        color: COLORS.text || '#000',
+        color: COLORS.white,
         fontSize: 16,
         height: '100%',
+        backgroundColor: 'transparent',
     },
 });
 

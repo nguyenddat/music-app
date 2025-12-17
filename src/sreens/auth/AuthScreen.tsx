@@ -1,155 +1,243 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Dimensions, StatusBar } from 'react-native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { COLORS } from '../../constants/colors';
+import React, { useEffect, useRef } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
 
+    StatusBar,
+    Animated,
+    Dimensions,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { COLORS } from '../../constants/colors';
+import { FONTS } from '../../constants/typography';
 
 const { width } = Dimensions.get('window');
 
 const AuthScreen = () => {
     const navigation = useNavigation();
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 800,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" />
+        <View style={styles.background}>
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-            {/* Header / Logo Area */}
-            <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                    <Ionicons name="musical-notes" size={40} color={COLORS.primary} />
+                {/* Logo Section */}
+                <View style={styles.logoSection}>
+                    <View style={styles.logoContainer}>
+                        <LinearGradient
+                            colors={[COLORS.primary, COLORS.secondary]}
+                            style={styles.logoGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                        >
+                            <Ionicons name="musical-notes" size={48} color={COLORS.white} />
+                        </LinearGradient>
+                    </View>
+                    <Text style={styles.logoText}>MusicApp</Text>
                 </View>
-            </View>
 
-            {/* Main Content */}
-            <View style={styles.content}>
-                <Text style={styles.title}>
-                    Hàng triệu bài hát.{'\n'}Miễn phí trên Music.
-                </Text>
+                {/* Content */}
+                <Animated.View
+                    style={[
+                        styles.content,
+                        {
+                            opacity: fadeAnim,
+                            transform: [{ translateY: slideAnim }],
+                        },
+                    ]}
+                >
+                    <Text style={styles.title}>
+                        Thế giới âm nhạc{'\n'}trong tầm tay
+                    </Text>
+                    <Text style={styles.subtitle}>
+                        Trải nghiệm âm thanh chất lượng cao cùng hàng triệu bài hát bản quyền.
+                    </Text>
 
-                <View style={styles.buttonContainer}>
-                    {/* Primary Action */}
-                    <TouchableOpacity
-                        style={[styles.button, styles.primaryButton]}
-                        onPress={() => navigation.navigate('Login' as never)}
-                    >
-                        <Text style={styles.primaryButtonText}>Đăng nhập</Text>
-                    </TouchableOpacity>
+                    {/* Buttons */}
+                    <View style={styles.buttonContainer}>
+                        {/* Primary Button - Login with Email */}
+                        <TouchableOpacity
+                            style={styles.primaryButton}
+                            onPress={() => navigation.navigate('Login' as never)}
+                            activeOpacity={0.8}
+                        >
+                            <LinearGradient
+                                colors={[COLORS.primary, COLORS.secondary]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={styles.buttonGradient}
+                            >
+                                <Text style={styles.primaryButtonText}>Đăng nhập</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
 
-                    {/* Social Actions */}
-                    <TouchableOpacity style={[styles.button, styles.outlineButton]}>
-                        <Ionicons name="logo-google" size={20} color={COLORS.text} style={styles.buttonIcon} />
-                        <Text style={styles.outlineButtonText}>Tiếp tục với Google</Text>
-                    </TouchableOpacity>
+                        {/* Apple Login */}
+                        <TouchableOpacity style={styles.appleButton} activeOpacity={0.7}>
+                            <View style={styles.appleButtonContent}>
+                                <Ionicons name="logo-apple" size={24} color={COLORS.white} />
+                                <Text style={styles.appleButtonText}>Tiếp tục với Apple</Text>
+                            </View>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.button, styles.outlineButton]}>
-                        <Ionicons name="logo-facebook" size={20} color="#1877F2" style={styles.buttonIcon} />
-                        <Text style={styles.outlineButtonText}>Tiếp tục với Facebook</Text>
-                    </TouchableOpacity>
+                    </View>
+                </Animated.View>
 
-                    <TouchableOpacity style={[styles.button, styles.outlineButton]}>
-                        <Ionicons name="logo-apple" size={20} color={COLORS.text} style={styles.buttonIcon} />
-                        <Text style={styles.outlineButtonText}>Tiếp tục với Apple</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.textLinkButton}
-                        onPress={() => navigation.navigate('Register' as never)}
-                    >
-                        <Text style={styles.textLink}>Đăng ký ngay</Text>
+                {/* Footer */}
+                <View style={styles.footer}>
+                    <Text style={styles.footerText}>Chưa có tài khoản? </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('Register' as never)}>
+                        <Text style={styles.registerLink}>Đăng ký ngay</Text>
                     </TouchableOpacity>
                 </View>
-            </View>
-        </SafeAreaView>
+            </SafeAreaView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    background: {
+        flex: 1,
+        backgroundColor: '#000000', // Pure black like home screen
+    },
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
     },
-    header: {
-        flex: 0.3,
-        justifyContent: 'center',
+    // Logo Section
+    logoSection: {
         alignItems: 'center',
+        marginTop: 80,
+        marginBottom: 40,
     },
     logoContainer: {
         width: 80,
         height: 80,
-        borderRadius: 40,
-        backgroundColor: COLORS.backgroundGradientStart,
+        borderRadius: 24, // Consistent rounded style
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        elevation: 8,
+        overflow: 'hidden',
+        marginBottom: 20,
+    },
+    logoGradient: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 4,
-        shadowColor: COLORS.glassShadow,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
     },
+    logoText: {
+        fontSize: 32,
+        fontFamily: FONTS.GilroyBold,
+        color: COLORS.white,
+        letterSpacing: 0.5,
+    },
+
+    // Content
     content: {
-        flex: 0.7,
-        paddingHorizontal: 30,
-        alignItems: 'center',
+        flex: 1,
+        paddingHorizontal: 20, // Match home screen 20px padding
+        justifyContent: 'center',
+        paddingBottom: 60,
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: COLORS.text,
+        fontSize: 36,
+        fontFamily: FONTS.GilroyBold,
+        color: COLORS.white,
         textAlign: 'center',
-        marginBottom: 40,
-        lineHeight: 36,
+        lineHeight: 44,
+        marginBottom: 16,
     },
+    subtitle: {
+        fontSize: 16,
+        fontFamily: FONTS.GilroyRegular,
+        color: COLORS.textSecondary,
+        textAlign: 'center',
+        marginBottom: 48,
+        lineHeight: 24,
+        paddingHorizontal: 20,
+    },
+
+    // Buttons
     buttonContainer: {
+        gap: 16,
         width: '100%',
-        alignItems: 'center',
-        gap: 12, // React Native 0.71+ support gap
-    },
-    button: {
-        width: '100%',
-        height: 50,
-        borderRadius: 25,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center', // Center text mostly
-        position: 'relative',
     },
     primaryButton: {
-        backgroundColor: COLORS.primary,
-        marginBottom: 10,
+        borderRadius: 16, // Match home screen card radius
+        overflow: 'hidden',
         shadowColor: COLORS.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+        elevation: 8,
+    },
+    buttonGradient: {
+        paddingVertical: 18,
+        alignItems: 'center',
     },
     primaryButtonText: {
+        fontSize: 18,
+        fontFamily: FONTS.GilroySemiBold,
         color: COLORS.white,
-        fontSize: 16,
-        fontWeight: 'bold',
     },
-    outlineButton: {
-        backgroundColor: COLORS.transparent,
+    appleButton: {
+        backgroundColor: 'rgba(255, 255, 255, 0.08)', // Match home screen glassmorphism
+        borderRadius: 16, // Match home screen card radius
+        paddingVertical: 18,
         borderWidth: 1,
-        borderColor: COLORS.textMuted,
+        borderColor: 'rgba(255, 255, 255, 0.1)', // Match home screen border
+        alignItems: 'center',
     },
-    outlineButtonText: {
-        color: COLORS.text,
+    appleButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    appleButtonText: {
+        fontSize: 18,
+        fontFamily: FONTS.GilroySemiBold,
+        color: COLORS.white,
+    },
+
+    // Footer
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingVertical: 40,
+        paddingBottom: 50,
+    },
+    footerText: {
         fontSize: 16,
-        fontWeight: '600',
+        fontFamily: FONTS.GilroyRegular,
+        color: COLORS.textSecondary,
     },
-    buttonIcon: {
-        position: 'absolute',
-        left: 20,
-    },
-    textLinkButton: {
-        marginTop: 20,
-        padding: 10,
-    },
-    textLink: {
-        color: COLORS.text,
+    registerLink: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: FONTS.GilroySemiBold,
+        color: COLORS.primary,
+        textDecorationLine: 'underline',
     },
 });
 

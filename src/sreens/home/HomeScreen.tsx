@@ -1,29 +1,127 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, Text, StatusBar } from 'react-native'; // Bỏ SafeAreaView ở đây đi
-import NavigationBar from './NavigationBar';
+import React, { useRef, useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 
-// Giả sử bạn đã có file COLORS hoặc copy constant COLORS vào đây để demo
-import { COLORS } from '../../constants/colors';
+import Header from './Header';
+import CustomBottomBar from '../../components/CustomBottomBar';
+import GreetingSection from './GreetingSection';
+import DiscoverySection from './DiscoverySection';
+import RecentPlaylistsSection from './RecentPlaylistsSection';
+import UniversalSection from './UniversalSection';
+import { TRENDING_PLAYLISTS, TOP_PLAYLISTS, YOUR_PLAYLISTS, MADE_FOR_YOU } from './playlistData';
 
-const HomeScreen = () => {
+interface HomeScreenProps {
+    navigation: any;
+}
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+    const scrollViewRef = useRef<ScrollView>(null);
+    const recentRef = useRef<View>(null);
+    const discoveryRef = useRef<View>(null);
+    const trendingRef = useRef<View>(null);
+    const topRef = useRef<View>(null);
+    const yourPlaylistsRef = useRef<View>(null);
+    const madeForYouRef = useRef<View>(null);
+
+    const [activeSection, setActiveSection] = useState('Recent');
+
+    const scrollToSection = (sectionName: string) => {
+        setActiveSection(sectionName);
+        let targetRef = null;
+
+        switch (sectionName) {
+            case 'Recent':
+                targetRef = recentRef;
+                break;
+            case 'Discovery':
+                targetRef = discoveryRef;
+                break;
+            case 'Trending':
+                targetRef = trendingRef;
+                break;
+            case 'Top':
+                targetRef = topRef;
+                break;
+            case 'Your Playlists':
+                targetRef = yourPlaylistsRef;
+                break;
+            case 'Made For You':
+                targetRef = madeForYouRef;
+                break;
+        }
+
+        if (targetRef?.current && scrollViewRef.current) {
+            targetRef.current.measureLayout(
+                scrollViewRef.current as any,
+                (x, y) => {
+                    scrollViewRef.current?.scrollTo({ y: y - 10, animated: true });
+                },
+                () => console.log('Failed to measure layout')
+            );
+        }
+    };
+
     return (
         <View style={styles.container}>
-            <NavigationBar />
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={{ paddingTop: 110, paddingBottom: 20 }}            >
-                <Text style={styles.heading}>New Release</Text>
+            <Header />
 
-                {[...Array(8)].map((_, i) => (
-                    <View key={i} style={styles.card}>
-                        <View style={styles.cardImg} />
-                        <View>
-                            <Text style={styles.cardTitle}>Song Title {i + 1}</Text>
-                            <Text style={styles.cardSub}>Artist Name</Text>
-                        </View>
-                    </View>
-                ))}
+            <View style={styles.stickyChipsContainer}>
+                <GreetingSection
+                    onSectionPress={scrollToSection}
+                    activeSection={activeSection}
+                />
+            </View>
+
+            <ScrollView
+                ref={scrollViewRef}
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                <View ref={recentRef}>
+                    <RecentPlaylistsSection />
+                </View>
+
+                <View ref={discoveryRef}>
+                    <DiscoverySection navigation={navigation} />
+                </View>
+
+                {/* Trending Playlists */}
+                <View ref={trendingRef}>
+                    <UniversalSection
+                        title="Trending Playlists"
+                        data={TRENDING_PLAYLISTS}
+                        onPressItem={(item) => console.log('Pressed:', item.title)}
+                    />
+                </View>
+
+                {/* Top Playlists */}
+                <View ref={topRef}>
+                    <UniversalSection
+                        title="Top Playlists"
+                        data={TOP_PLAYLISTS}
+                        onPressItem={(item) => console.log('Pressed:', item.title)}
+                    />
+                </View>
+
+                {/* Your Playlists */}
+                <View ref={yourPlaylistsRef}>
+                    <UniversalSection
+                        title="Các Playlist Của Bạn"
+                        data={YOUR_PLAYLISTS}
+                        onPressItem={(item) => console.log('Pressed:', item.title)}
+                    />
+                </View>
+
+                {/* Made For You */}
+                <View ref={madeForYouRef}>
+                    <UniversalSection
+                        title="Các Playlist Chúng Tôi Tạo Cho Bạn"
+                        data={MADE_FOR_YOU}
+                        onPressItem={(item) => console.log('Pressed:', item.title)}
+                    />
+                </View>
             </ScrollView>
+            <CustomBottomBar />
         </View>
     );
 };
@@ -31,19 +129,19 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFF', // Màu nền trùng với thiết kế
+        backgroundColor: '#000000',
+    },
+    stickyChipsContainer: {
+        backgroundColor: '#000000',
+        zIndex: 10,
     },
     scrollView: {
         flex: 1,
         width: '100%',
-        paddingHorizontal: 20,
+        backgroundColor: '#000000',
     },
-    // Style cho nội dung demo
-    heading: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#2D2E4A',
-        marginBottom: 20,
+    scrollContent: {
+        paddingBottom: 80,
     },
     card: {
         flexDirection: 'row',
@@ -52,7 +150,6 @@ const styles = StyleSheet.create({
         padding: 15,
         marginBottom: 15,
         borderRadius: 16,
-        // Shadow nhẹ
         shadowColor: '#7B6CFF',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.05,

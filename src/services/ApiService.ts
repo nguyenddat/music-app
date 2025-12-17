@@ -16,7 +16,7 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
         try {
-            const token = await AsyncStorage.getItem('userToken');
+            const token = await AsyncStorage.getItem('access_token');
             if (token && config.headers) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -37,7 +37,7 @@ api.interceptors.response.use(
     },
     async (error: AxiosError) => {
         if (error.response?.status === 401) {
-            await AsyncStorage.removeItem('userToken');
+            await AsyncStorage.removeItem('access_token');
         }
         return Promise.reject(error);
     }

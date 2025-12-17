@@ -9,14 +9,4 @@ const getConfigValue = (key: string): string => {
     return value;
 };
 
-export const firebaseConfig = {
-    apiKey: getConfigValue('firebaseApiKey'),
-    authDomain: getConfigValue('firebaseAuthDomain'),
-    projectId: getConfigValue('firebaseProjectId'),
-    storageBucket: getConfigValue('firebaseStorageBucket'),
-    messagingSenderId: getConfigValue('firebaseMessagingSenderId'),
-    appId: getConfigValue('firebaseAppId'),
-    measurementId: getConfigValue('firebaseMeasurementId'),
-};
-
 export const API_BASE_URL = getConfigValue('apiBaseUrl');

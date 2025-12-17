@@ -44,5 +44,24 @@ export function useAuth() {
         }
     }
 
-    return { login, register, loading, error };
+    const me = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const result = await UserService.me();
+            if (!result.success) { throw result.error; }
+            return result.data;
+        } catch (err: any) {
+            console.error('Failed to fetch user profile:', err);
+            setError(
+                err?.message ||
+                'Không thể tải thông tin người dùng'
+            )
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return { login, register, me, loading, error };
 }   
