@@ -62,6 +62,16 @@ class MusicService {
             return { success: false, data: [], error: error };
         }
     }
+
+    // Lấy danh sách nhạc theo playlist id
+    async getMusicByPlaylistId(id: number): Promise<{ success: boolean; data: MusicResponse[], error: any }> {
+        try {
+            const response = await api.get(`/playlist-song/playlist/${id}/songs`);
+            return { success: true, data: response.data, error: null };
+        } catch (error) {
+            return { success: false, data: [], error: error };
+        }
+    }
 }
 
 export default MusicService;

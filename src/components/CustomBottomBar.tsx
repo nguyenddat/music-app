@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-const TABS = [
-    { name: 'Home', icon: 'home-outline', activeIcon: 'home', label: 'Trang chủ' },
-    { name: 'Search', icon: 'search-outline', activeIcon: 'search', label: 'Tìm kiếm' },
-    { name: 'Playlists', icon: 'musical-notes-outline', activeIcon: 'musical-notes', label: 'Playlist' },
-    { name: 'Settings', icon: 'settings-outline', activeIcon: 'settings', label: 'Cài đặt' },
-];
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 const BAR_HEIGHT = 60;
 
@@ -19,35 +13,67 @@ const COLORS = {
     inactiveText: 'rgba(255, 255, 255, 0.5)',
 };
 
-const CustomBottomBar = () => {
-    const [activeTab, setActiveTab] = useState('Home');
+// Tab configuration with icons and labels
+const TAB_CONFIG: Record<string, { icon: string; activeIcon: string; label: string }> = {
+    Home: { icon: 'home-outline', activeIcon: 'home', label: 'Trang chủ' },
+    Find: { icon: 'search-outline', activeIcon: 'search', label: 'Tìm kiếm' },
+    Playlists: { icon: 'musical-notes-outline', activeIcon: 'musical-notes', label: 'Playlist' },
+    Settings: { icon: 'settings-outline', activeIcon: 'settings', label: 'Cài đặt' },
+};
 
-    const handlePress = (tabName: string) => {
-        setActiveTab(tabName);
-    };
-
+const CustomBottomBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.barContent}>
-                {TABS.map((tab) => {
-                    const isActive = activeTab === tab.name;
+                {state.routes.map((route, index) => {
+                    const { options } = descriptors[route.key];
+                    const isFocused = state.index === index;
+                    const config = TAB_CONFIG[route.name];
+
+                    if (!config) return null;
+
+                    const onPress = () => {
+                        const event = navigation.emit({
+                            type: 'tabPress',
+                            target: route.key,
+                            canPreventDefault: true,
+                        });
+
+                        if (!isFocused && !event.defaultPrevented) {
+                            navigation.navigate(route.name);
+                        }
+                    };
+
+                    const onLongPress = () => {
+                        navigation.emit({
+                            type: 'tabLongPress',
+                            target: route.key,
+                        });
+                    };
+
                     return (
                         <TouchableOpacity
-                            key={tab.name}
+                            key={route.key}
+                            accessibilityRole="button"
+                            accessibilityState={isFocused ? { selected: true } : {}}
+                            accessibilityLabel={options.tabBarAccessibilityLabel}
+                            onPress={onPress}
+                            onLongPress={onLongPress}
                             style={styles.tabButton}
-                            onPress={() => handlePress(tab.name)}
                             activeOpacity={0.7}
                         >
                             <Ionicons
-                                name={(isActive ? tab.activeIcon : tab.icon) as any}
+                                name={(isFocused ? config.activeIcon : config.icon) as any}
                                 size={24}
-                                color={isActive ? COLORS.activeIcon : COLORS.inactiveIcon}
+                                color={isFocused ? COLORS.activeIcon : COLORS.inactiveIcon}
                             />
-                            <Text style={[
-                                styles.label,
-                                { color: isActive ? COLORS.activeText : COLORS.inactiveText }
-                            ]}>
-                                {tab.label}
+                            <Text
+                                style={[
+                                    styles.label,
+                                    { color: isFocused ? COLORS.activeText : COLORS.inactiveText }
+                                ]}
+                            >
+                                {config.label}
                             </Text>
                         </TouchableOpacity>
                     );

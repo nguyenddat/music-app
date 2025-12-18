@@ -1,15 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 
-import { COLORS } from '../../constants/colors';
-import { FONTS } from '../../constants/typography';
+import AlbumSection, { AlbumItem } from '../../components/AlbumSection';
 
-const { width } = Dimensions.get('window');
-const PADDING_HORIZONTAL = 20;
-const GAP = 12;
-
-const ITEM_WIDTH = (width - (PADDING_HORIZONTAL * 2) - GAP) / 2;
-const RECENT_DATA = [
+const RECENT_DATA: AlbumItem[] = [
     { id: '1', title: "Today's Top Hits", image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80' },
     { id: '2', title: 'Deep Focus', image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&q=80' },
     { id: '3', title: 'Chill Lo-Fi Beats', image: 'https://images.unsplash.com/photo-1514525253440-b393452e3383?w=500&q=80' },
@@ -19,79 +12,25 @@ const RECENT_DATA = [
 ];
 
 const RecentPlaylists = () => {
+    const handlePressAlbum = (album: AlbumItem) => {
+        console.log('Pressed album:', album.title);
+        // Xử lý khi người dùng ấn vào album
+    };
+
+    const handlePressMore = () => {
+        console.log('Pressed see more');
+        // Xử lý khi người dùng ấn "Xem thêm"
+    };
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Recent playlists</Text>
-
-            <View style={styles.gridContainer}>
-                {RECENT_DATA.map((item) => (
-                    <TouchableOpacity
-                        key={item.id}
-                        style={styles.card}
-                        activeOpacity={0.7}
-                    >
-                        {/* Ảnh bên trái */}
-                        <Image
-                            source={{ uri: item.image }}
-                            style={styles.coverImage}
-                        />
-
-                        {/* Text bên phải */}
-                        <View style={styles.textContainer}>
-                            <Text style={styles.title} numberOfLines={2}>
-                                {item.title}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </View>
-        </View>
+        <AlbumSection
+            title="Recent playlists"
+            albums={RECENT_DATA}
+            showMore={false} // Không hiển thị nút "Xem thêm" cho Recent playlists
+            onPressAlbum={handlePressAlbum}
+            onPressMore={handlePressMore}
+        />
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        marginTop: 4,
-        marginBottom: 12,
-    },
-    sectionTitle: {
-        fontFamily: FONTS.GilroySemiBold,
-        fontSize: 20,
-        color: COLORS.text,
-        marginBottom: 12,
-        paddingHorizontal: PADDING_HORIZONTAL,
-    },
-    gridContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: GAP,
-        paddingHorizontal: PADDING_HORIZONTAL,
-    },
-    card: {
-        width: ITEM_WIDTH,
-        height: 56,
-        backgroundColor: 'rgba(56, 67, 88, 0.4)',
-        borderRadius: 4,
-        flexDirection: 'row',
-        alignItems: 'center',
-        overflow: 'hidden',
-    },
-    coverImage: {
-        width: 56,
-        height: '100%',
-        resizeMode: 'cover',
-    },
-    textContainer: {
-        flex: 1,
-        paddingHorizontal: 8,
-        justifyContent: 'center',
-    },
-    title: {
-        fontFamily: FONTS.GilroySemiBold,
-        fontSize: 13,
-        color: COLORS.text,
-        lineHeight: 18,
-    },
-});
 
 export default RecentPlaylists;

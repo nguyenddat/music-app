@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 
 import Header from './Header';
-import CustomBottomBar from '../../components/CustomBottomBar';
 import GreetingSection from './GreetingSection';
 import DiscoverySection from './DiscoverySection';
 import RecentPlaylistsSection from './RecentPlaylistsSection';
@@ -62,7 +61,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Header />
+            <Header navigation={navigation} />
 
             <View style={styles.stickyChipsContainer}>
                 <GreetingSection
@@ -121,7 +120,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     />
                 </View>
             </ScrollView>
-            <CustomBottomBar />
         </View>
     );
 };

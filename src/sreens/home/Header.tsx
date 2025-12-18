@@ -6,7 +6,15 @@ import { COLORS } from '../../constants/colors';
 
 const AVATAR_URL = 'https://i.pravatar.cc/150?img=4';
 
-const Header = () => {
+interface HeaderProps {
+    navigation: any;
+}
+
+const Header: React.FC<HeaderProps> = ({ navigation }) => {
+    const handleSearchPress = () => {
+        navigation.navigate('Find');
+    };
+
     return (
         <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
@@ -24,7 +32,7 @@ const Header = () => {
                     <TouchableOpacity
                         style={styles.iconButton}
                         activeOpacity={0.7}
-                        onPress={() => console.log('Search pressed')}
+                        onPress={handleSearchPress}
                     >
                         <Ionicons
                             name="search-outline"

@@ -129,7 +129,7 @@ const ArtistScreen = () => {
             });
 
             if (response.success) {
-                navigation.navigate('Home' as never);
+                navigation.navigate('MainTabs' as never);
             } else {
                 Alert.alert("Lỗi", "Không thể lưu nghệ sĩ. Vui lòng thử lại.");
             }

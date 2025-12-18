@@ -66,7 +66,7 @@ const LoginScreen = () => {
             const result = await login({ email, password });
             if (result) {
                 if (result.is_onboarded) {
-                    navigation.navigate('Home' as never);
+                    navigation.navigate('MainTabs' as never);
                 } else {
                     navigation.navigate('Welcome' as never);
                 }
