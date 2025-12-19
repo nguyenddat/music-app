@@ -19,6 +19,8 @@ import AIFindScreen from './src/sreens/find/AIFindScreen';
 import LoginScreen from './src/sreens/auth/LoginScreen';
 import RegisterScreen from './src/sreens/auth/RegisterScreen';
 import PlaylistScreen from './src/sreens/playlist/PlaylistScreen';
+import ArtistDetailScreen from './src/sreens/playlist/ArtistScreen';
+import PersonalScreen from './src/sreens/auth/PersonalScreen';
 import { COLORS } from './src/constants/colors';
 
 import { MusicPlayerProvider } from './src/contexts/MusicPlayerContext';
@@ -108,6 +110,8 @@ export default function App() {
           <Stack.Screen name="MainFind" component={MainFindScreen} />
           <Stack.Screen name="AIFind" component={AIFindScreen} />
           <Stack.Screen name="Playlist" component={PlaylistScreen} />
+          <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
+          <Stack.Screen name="Personal" component={PersonalScreen} />
         </Stack.Navigator>
 
         {/* Unified Player - renders above all screens */}

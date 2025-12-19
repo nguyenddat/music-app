@@ -17,6 +17,10 @@ export interface MusicMatchResponse extends MusicResponse {
     match_offset: number;
 }
 
+export interface MusicHistoryRequest {
+    song_id: number;
+}
+
 class MusicService {
     // Lấy danh sách các bài nhạc tuần này
     async getWeeklyMusic(): Promise<{ success: boolean; data: MusicResponse[], error: any }> {
@@ -124,6 +128,36 @@ class MusicService {
             return { success: false, data: [], error: error };
         }
     }
+
+    // Lây danh sách nhạc theo id nghệ sĩ
+    async getMusicByArtistId(artistId: number): Promise<{ success: boolean; data: MusicResponse[], error: any }> {
+        try {
+            const response = await api.get(`/artist/${artistId}/songs`);
+            return { success: true, data: response.data, error: null };
+        } catch (error) {
+            return { success: false, data: [], error: error };
+        }
+    }
+
+    // Lấy danh sách lịch sử nghe nhạc
+    async getHistory(): Promise<{ success: boolean; data: MusicResponse[] | null; error: any }> {
+        try {
+            const response = await api.get('/history/song/');
+            return { success: true, data: response.data, error: null };
+        } catch (error) {
+            return { success: false, data: null, error: error };
+        }
+    }
+
+    // Tạo lịch sử nghe nhạc
+    async createHistory(request: MusicHistoryRequest): Promise<{ success: boolean; data: MusicResponse | null; error: any }> {
+        try {
+            const response = await api.post(`/history/song/`, request);
+            return { success: true, data: response.data, error: null };
+        } catch (error) {
+            return { success: false, data: null, error: error };
+        }
+    }
 }
 
-export default MusicService;
+export default new MusicService();

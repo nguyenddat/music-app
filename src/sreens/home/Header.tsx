@@ -55,14 +55,15 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                     </TouchableOpacity>
 
                     {/* Heart/Favorite Button */}
+                    {/* Personal/Profile Button (formerly Heart) */}
                     <TouchableOpacity
                         style={styles.iconButton}
                         activeOpacity={0.7}
-                        onPress={() => navigation.navigate('Playlists')}
+                        onPress={() => navigation.navigate('Personal')}
                     >
                         <Ionicons
-                            name="heart-outline"
-                            size={20}
+                            name="person-circle-outline"
+                            size={22}
                             color="#FFFFFF"
                         />
                     </TouchableOpacity>

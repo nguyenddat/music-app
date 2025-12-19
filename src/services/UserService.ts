@@ -42,6 +42,17 @@ export interface MeResponse {
     is_active: boolean;
 }
 
+export interface SearchHistoryResponse {
+    id: number;
+    user_id: number;
+    created_at: string;
+    query: string;
+}
+
+export interface SearchHistoryRequest {
+    query: string;
+}
+
 class UserService {
     // Đăng ký
     async register(request: RegisterRequest): Promise<{ success: boolean; data: TokenResponse | null; error: any }> {
@@ -97,6 +108,26 @@ class UserService {
     async me(): Promise<{ success: boolean; data: MeResponse | null; error: any }> {
         try {
             const response = await api.get('/user/me');
+            return { success: true, data: response.data, error: null };
+        } catch (error) {
+            return { success: false, data: null, error: error };
+        }
+    }
+
+    // Lấy các query search history
+    async getSearchHistory(): Promise<{ success: boolean; data: SearchHistoryResponse[] | null; error: any }> {
+        try {
+            const response = await api.get('/history/search/');
+            return { success: true, data: response.data, error: null };
+        } catch (error) {
+            return { success: false, data: null, error: error };
+        }
+    }
+
+    // Gửi query search history
+    async addSearchHistory(request: SearchHistoryRequest): Promise<{ success: boolean; data: SearchHistoryResponse | null; error: any }> {
+        try {
+            const response = await api.post('/history/search/', request);
             return { success: true, data: response.data, error: null };
         } catch (error) {
             return { success: false, data: null, error: error };

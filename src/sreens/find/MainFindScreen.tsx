@@ -16,6 +16,8 @@ import { FONTS } from '../../constants/typography';
 import SearchResultItem from '../../components/SearchResultItem';
 import ArtistService, { ArtistResponse } from '../../services/ArtistService';
 import PlaylistService, { PlayListResponse } from '../../services/PlaylistService';
+import MusicService, { MusicResponse } from '../../services/MusicService';
+import UserService, { SearchHistoryResponse } from '../../services/UserService';
 
 interface MainFindScreenProps {
     navigation: any;
@@ -36,6 +38,25 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
     const filters = ['All', 'Artists', 'Songs', 'Albums', 'Playlists'];
     const [allResults, setAllResults] = useState<UnifiedSearchResult[]>([]);
     const [loading, setLoading] = useState(false);
+    const [searchHistory, setSearchHistory] = useState<SearchHistoryResponse[]>([]);
+
+    useEffect(() => {
+        fetchSearchHistory();
+    }, []);
+
+    const fetchSearchHistory = async () => {
+        const response = await UserService.getSearchHistory();
+        if (response.success && response.data) {
+            setSearchHistory(response.data);
+        }
+    };
+
+    const addToHistory = async (query: string) => {
+        const response = await UserService.addSearchHistory({ query });
+        if (response.success) {
+            fetchSearchHistory();
+        }
+    };
 
 
 
@@ -104,9 +125,57 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
         navigation.goBack();
     };
 
-    const handleResultPress = (result: UnifiedSearchResult) => {
-        // TODO: Navigate to appropriate detail screen based on type
-        console.log('Result pressed:', result);
+    const handleResultPress = async (result: UnifiedSearchResult) => {
+        if (result.type === 'Artist') {
+            addToHistory(result.title);
+            navigation.navigate('ArtistDetail', {
+                artist: result.originalData,
+                dominantColor: '#5e35b1' // You could generate a random color or pick based on avatar
+            });
+            return;
+        }
+
+        if (loading) return; // Prevent multiple taps
+
+        setLoading(true);
+        try {
+            // 1. Fetch songs for this playlist/album
+            // Assuming both Album and Playlist use the same song fetching structure for now
+            // or if Albums have different ID logic, handle here. 
+            // result.originalData.id is the playlist/album ID.
+            const musicResponse = await MusicService.getMusicByPlaylistId(result.originalData.id);
+
+            if (musicResponse.success) {
+                // 2. Map APIs MusicResponse to Song interface for UI
+                // interface Song { id: string; title: string; artist: string; cover: string; duration?: number; isLiked?: boolean; }
+                const mappedSongs = musicResponse.data.map((m: MusicResponse) => ({
+                    id: m.id.toString(),
+                    title: m.name,
+                    artist: m.artists && m.artists.length > 0 ? m.artists.join(', ') : 'Unknown Artist',
+                    cover: m.avatar_url || 'https://via.placeholder.com/150',
+                    duration: m.duration,
+                    isLiked: false // Default
+                }));
+
+                // 3. Navigate to PlaylistScreen
+                navigation.navigate('Playlist', {
+                    playlistTitle: result.title,
+                    playlistCover: result.avatar,
+                    songs: mappedSongs,
+                    description: result.subtitle || 'No description',
+                    dominantColor: '#121212' // Or calculate/pass color
+                });
+                addToHistory(result.title);
+            } else {
+                console.error('Failed to fetch songs:', musicResponse.error);
+                // Optionally show alert
+            }
+
+        } catch (error) {
+            console.error('Error handling result press:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const filteredResults = allResults.filter(item => {
@@ -131,6 +200,11 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
                         placeholderTextColor="#a7a7a7"
                         value={searchText}
                         onChangeText={setSearchText}
+                        onSubmitEditing={() => {
+                            if (searchText.trim()) {
+                                addToHistory(searchText.trim());
+                            }
+                        }}
                     />
                 </View>
                 <TouchableOpacity onPress={handleCancel}>
@@ -161,6 +235,21 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
                 {!searchText.trim() ? (
                     <>
                         <Text style={styles.sectionTitle}>Nội dung tìm kiếm gần đây</Text>
+                        <View style={styles.quickRecommendations}>
+                            {searchHistory.length > 0 ? (
+                                searchHistory.map((history) => (
+                                    <TouchableOpacity
+                                        key={history.id}
+                                        style={styles.quickChip}
+                                        onPress={() => setSearchText(history.query)}
+                                    >
+                                        <Text style={styles.quickChipText}>{history.query}</Text>
+                                    </TouchableOpacity>
+                                ))
+                            ) : (
+                                <Text style={styles.emptyText}>Chưa có lịch sử tìm kiếm</Text>
+                            )}
+                        </View>
                     </>
                 ) : (
                     <>

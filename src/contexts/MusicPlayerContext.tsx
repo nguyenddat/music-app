@@ -57,7 +57,7 @@ export const MusicPlayerProvider = ({ children }: { children: ReactNode }) => {
     const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
 
     const sound = useRef<Audio.Sound | null>(null);
-    const musicService = useRef(new MusicService()).current;
+    const musicService = useRef(MusicService).current;
     const seekOffset = useRef(0); // Track the offset from the original file start (in seconds)
 
     // Setup audio on mount

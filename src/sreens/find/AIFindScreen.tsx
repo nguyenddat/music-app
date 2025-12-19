@@ -17,7 +17,7 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
     const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [matchResults, setMatchResults] = useState<MusicMatchResponse[]>([]);
-    const musicService = new MusicService();
+    const musicService = MusicService;
 
     const handlePickDocument = async () => {
         try {

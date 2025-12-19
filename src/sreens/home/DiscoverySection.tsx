@@ -56,7 +56,7 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
     const progress = useSharedValue(0);
 
     const handlePlayPress = async (itemId: string) => {
-        const musicService = new MusicService();
+        const musicService = MusicService;
 
         if (itemId === '1' && navigation) {
             // Card 1: Nhạc tuần này
