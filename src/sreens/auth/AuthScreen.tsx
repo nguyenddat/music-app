@@ -88,6 +88,7 @@ const AuthScreen = () => {
                             <LinearGradient
                                 colors={[COLORS.primary, COLORS.secondary]}
                                 start={{ x: 0, y: 0 }}
+                                style={styles.buttonGradient}
                             >
                                 <Text style={styles.primaryButtonText}>{t('login')}</Text>
                             </LinearGradient>

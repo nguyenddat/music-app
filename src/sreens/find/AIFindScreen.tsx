@@ -33,7 +33,6 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
                 const file = result.assets[0];
                 console.log('Selected file:', file);
                 setSelectedFile(file);
-                // Reset previous results when new file is picked
                 setMatchResults([]);
             }
         } catch (error) {

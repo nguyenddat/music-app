@@ -25,11 +25,13 @@ import UserService, { MeResponse } from '../../services/UserService';
 import AlbumSection, { AlbumItem } from '../../components/AlbumSection';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
 
 
 const PersonalScreen = () => {
     const navigation = useNavigation<any>();
     const { t } = useLanguage();
+    const { playSong } = useMusicPlayer();
     const [loading, setLoading] = useState(true);
     const [songHistory, setSongHistory] = useState<MusicHistoryItem[]>([]);
     const [playlistHistory, setPlaylistHistory] = useState<PlaylistHistoryItem[]>([]);
@@ -101,8 +103,22 @@ const PersonalScreen = () => {
         }
     };
 
-    const handleSongPress = (song: MusicResponse) => {
-        console.log('Play song:', song.name);
+
+
+    const handleSongPress = (rawSong: MusicResponse) => {
+        const historyPlaylist = songHistory.map(item => ({
+            ...item.song,
+            artists: Array.isArray(item.song.artists) ? item.song.artists : []
+        }));
+
+        const songIndex = historyPlaylist.findIndex(s => s.id === rawSong.id);
+
+        const safeSong = songIndex !== -1 ? historyPlaylist[songIndex] : {
+            ...rawSong,
+            artists: Array.isArray(rawSong.artists) ? rawSong.artists : []
+        };
+
+        playSong(safeSong, historyPlaylist, songIndex !== -1 ? songIndex : 0);
     };
 
     const handlePlaylistPress = (item: PlayListResponse, isAlbum: boolean) => {
@@ -131,7 +147,7 @@ const PersonalScreen = () => {
                 const mappedSongs = musicResponse.data.map((m: MusicResponse) => ({
                     id: m.id.toString(),
                     title: m.name,
-                    artist: m.artists && m.artists.length > 0 ? m.artists.join(', ') : 'Unknown Artist',
+                    artist: Array.isArray(m.artists) && m.artists.length > 0 ? m.artists.join(', ') : 'Unknown Artist',
                     cover: m.avatar_url || 'https://via.placeholder.com/150',
                     duration: m.duration,
                     isLiked: false
@@ -179,12 +195,9 @@ const PersonalScreen = () => {
             });
 
             if (res.success) {
-                // Close modal and reset
                 setCreateModalVisible(false);
                 setNewPlaylistName('');
-
-                // Refresh data
-                fetchHistory(); // Re-fetch all data to show new playlist
+                fetchHistory();
             } else {
                 Alert.alert('Lỗi', 'Không thể tạo playlist. Vui lòng thử lại.');
             }
@@ -197,7 +210,6 @@ const PersonalScreen = () => {
     };
 
     const renderCodeItem = (item: any, type: 'song' | 'playlist' | 'album') => {
-        // Handle history wrapper for songs or direct object
         let data: MusicResponse | PlayListResponse;
         if (type === 'song') {
             const historyItem = item as MusicHistoryItem;
@@ -207,17 +219,15 @@ const PersonalScreen = () => {
             data = historyItem.playlist;
         }
 
-        // Determine properties based on the actual data
         let title = data.name;
         let subtitle = '';
         if (type === 'song') {
             const songData = data as MusicResponse;
-            subtitle = songData.artists ? songData.artists.join(', ') : '';
+            subtitle = Array.isArray(songData.artists) ? songData.artists.join(', ') : '';
         }
 
         let image = data.avatar_url;
 
-        // Fallback for image
         if (!image) image = 'https://via.placeholder.com/150';
 
         return (
