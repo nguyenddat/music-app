@@ -27,10 +27,12 @@ import { FONTS } from '../../constants/typography';
 import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
 import MusicService, { MusicResponse } from '../../services/MusicService';
 import PlaylistService, { PlayListResponse } from '../../services/PlaylistService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 const ArtistScreen = () => {
+    const { t } = useLanguage();
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { artist, dominantColor = '#5e35b1' } = route.params || {};
@@ -102,7 +104,7 @@ const ArtistScreen = () => {
         const contextSong = {
             id: song.id,
             name: song.name,
-            artists: song.artists || [artist?.name || 'Unknown'],
+            artists: song.artists || [artist?.name || t('unknownArtist')],
             avatar_url: song.avatar_url,
             duration: song.duration
         };
@@ -110,7 +112,7 @@ const ArtistScreen = () => {
         const playlist = popularSongs.map(s => ({
             id: s.id,
             name: s.name,
-            artists: s.artists || [artist?.name || 'Unknown'],
+            artists: s.artists || [artist?.name || t('unknownArtist')],
             avatar_url: s.avatar_url,
             duration: s.duration
         }));
@@ -129,7 +131,7 @@ const ArtistScreen = () => {
             <Image source={{ uri: item.avatar_url }} style={styles.songCover} />
             <View style={styles.songInfo}>
                 <Text style={styles.songTitle} numberOfLines={1}>{item.name}</Text>
-                <Text style={styles.songListeners}>{(Math.random() * 5 + 1).toFixed(1)}M plays</Text>
+                <Text style={styles.songListeners}>{t('millionPlays').replace('{{count}}', (Math.random() * 5 + 1).toFixed(1))}</Text>
             </View>
             <TouchableOpacity>
                 <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textSecondary} />
@@ -146,17 +148,18 @@ const ArtistScreen = () => {
             const mappedSongs = musicResponse.data.map((m: MusicResponse) => ({
                 id: m.id.toString(),
                 title: m.name,
-                artist: m.artists && m.artists.length > 0 ? m.artists.join(', ') : 'Unknown Artist',
+                artist: m.artists && m.artists.length > 0 ? m.artists.join(', ') : t('unknownArtist'),
                 cover: m.avatar_url || 'https://via.placeholder.com/150',
                 duration: m.duration,
                 isLiked: false
             }));
 
             navigation.navigate('Playlist', {
+                playlistId: album.id,
                 playlistTitle: album.name,
                 playlistCover: album.avatar_url,
                 songs: mappedSongs,
-                description: `Album by ${artist.name}`,
+                description: t('albumBy').replace('{{artist}}', artist.name),
                 dominantColor: dominantColor
             });
         }
@@ -202,9 +205,9 @@ const ArtistScreen = () => {
 
                 {/* Artist Info */}
                 <View style={styles.artistInfoContainer}>
-                    <Text style={styles.artistName}>{artist?.name || 'Unknown Artist'}</Text>
+                    <Text style={styles.artistName}>{artist?.name || t('unknownArtist')}</Text>
                     <Text style={styles.monthlyListeners}>
-                        {(Math.random() * 10 + 2).toFixed(1)}M monthly listeners
+                        {t('monthlyListeners').replace('{{count}}', (Math.random() * 10 + 2).toFixed(1))}
                     </Text>
                 </View>
 
@@ -215,7 +218,7 @@ const ArtistScreen = () => {
                             style={styles.followButton}
                             onPress={() => setIsThinking(!isThinking)}
                         >
-                            <Text style={styles.followText}>{isThinking ? 'Following' : 'Follow'}</Text>
+                            <Text style={styles.followText}>{isThinking ? t('following') : t('follow')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.iconBtn}>
                             <Ionicons name="ellipsis-vertical" size={24} color={COLORS.textSecondary} />
@@ -229,7 +232,7 @@ const ArtistScreen = () => {
 
                 {/* Popular Songs Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Popular</Text>
+                    <Text style={styles.sectionTitle}>{t('popular')}</Text>
                     <FlatList
                         data={popularSongs}
                         renderItem={renderSongItem}
@@ -241,7 +244,7 @@ const ArtistScreen = () => {
                 {/* Albums Section (Mock) */}
                 {albums.length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Albums</Text>
+                        <Text style={styles.sectionTitle}>{t('albums')}</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12 }}>
                             {albums.map((album, i) => (
                                 <TouchableOpacity
@@ -263,7 +266,7 @@ const ArtistScreen = () => {
 
                 {/* About Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>About</Text>
+                    <Text style={styles.sectionTitle}>{t('about')}</Text>
                     <View style={styles.aboutCard}>
                         <Image
                             source={{ uri: artist?.avatar_url || 'https://via.placeholder.com/500' }}

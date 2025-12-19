@@ -22,10 +22,12 @@ import { FONTS } from '../../constants/typography';
 import { useAuth } from '../../hooks/useAuth';
 import Input from '../../components/Input';
 import PasswordInput from '../../components/PasswordInput';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const RegisterScreen = () => {
     const navigation = useNavigation();
     const { register, loading, error } = useAuth();
+    const { t } = useLanguage();
 
     const [form, setForm] = useState({
         fullName: '',
@@ -63,17 +65,17 @@ const RegisterScreen = () => {
         const { fullName, email, password, confirmPassword } = form;
 
         if (!fullName || !email || !password || !confirmPassword) {
-            Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin');
+            Alert.alert(t('error'), t('fillAllFields'));
             return false;
         }
 
         if (password !== confirmPassword) {
-            Alert.alert('Lỗi', 'Mật khẩu xác nhận không khớp');
+            Alert.alert(t('error'), t('passwordMismatch'));
             return false;
         }
 
         if (password.length < 6) {
-            Alert.alert('Lỗi', 'Mật khẩu phải có ít nhất 6 ký tự');
+            Alert.alert(t('error'), t('passwordTooShort'));
             return false;
         }
 
@@ -135,9 +137,9 @@ const RegisterScreen = () => {
                                 },
                             ]}
                         >
-                            <Text style={styles.title}>Tạo tài khoản</Text>
+                            <Text style={styles.title}>{t('createAccount')}</Text>
                             <Text style={styles.subtitle}>
-                                Đăng ký để bắt đầu trải nghiệm âm nhạc
+                                {t('registerToStart')}
                             </Text>
 
                             {/* Error */}
@@ -152,7 +154,7 @@ const RegisterScreen = () => {
                             <View style={styles.form}>
                                 <Input
                                     icon="person-outline"
-                                    placeholder="Họ và tên"
+                                    placeholder={t('fullName')}
                                     value={form.fullName}
                                     editable={!loading}
                                     onChangeText={v => updateField('fullName', v)}
@@ -169,7 +171,7 @@ const RegisterScreen = () => {
                                 />
 
                                 <PasswordInput
-                                    placeholder="Mật khẩu"
+                                    placeholder={t('password')}
                                     value={form.password}
                                     visible={showPassword}
                                     setVisible={setShowPassword}
@@ -178,7 +180,7 @@ const RegisterScreen = () => {
                                 />
 
                                 <PasswordInput
-                                    placeholder="Xác nhận mật khẩu"
+                                    placeholder={t('confirmPassword')}
                                     value={form.confirmPassword}
                                     visible={showConfirmPassword}
                                     setVisible={setShowConfirmPassword}
@@ -209,7 +211,7 @@ const RegisterScreen = () => {
                                         <ActivityIndicator color={COLORS.white} />
                                     ) : (
                                         <>
-                                            <Text style={styles.registerButtonText}>Đăng ký</Text>
+                                            <Text style={styles.registerButtonText}>{t('register')}</Text>
                                             <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
                                         </>
                                     )}
@@ -217,9 +219,9 @@ const RegisterScreen = () => {
                             </TouchableOpacity>
 
                             <View style={styles.loginRow}>
-                                <Text style={styles.loginText}>Đã có tài khoản? </Text>
+                                <Text style={styles.loginText}>{t('alreadyHaveAccount')}</Text>
                                 <TouchableOpacity onPress={() => navigation.navigate('Login' as never)}>
-                                    <Text style={styles.loginLink}>Đăng nhập ngay</Text>
+                                    <Text style={styles.loginLink}>{t('loginNow')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -308,15 +310,16 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         overflow: 'hidden',
         marginBottom: 24,
+        height: 56,
     },
     registerButtonDisabled: {
         opacity: 0.6,
     },
     registerButtonGradient: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 18,
         gap: 8,
     },
     registerButtonText: {

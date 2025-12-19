@@ -17,19 +17,22 @@ import { FONTS, TYPOGRAPHY } from '../../constants/typography';
 import AlbumSection, { AlbumItem } from '../../components/AlbumSection';
 import PlaylistSection, { PlaylistItem } from '../../components/PlaylistSection';
 import ArtistSection, { ArtistItem } from '../../components/ArtistSection';
-import PlaylistService, { PlayListResponse } from '../../services/PlaylistService';
+import PlaylistService, { PlayListResponse, PlaylistHistoryItem } from '../../services/PlaylistService';
 import ArtistService, { ArtistResponse } from '../../services/ArtistService';
 import MusicService, { MusicResponse } from '../../services/MusicService';
+
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface FindScreenProps {
     navigation: any;
 }
 
 const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
+    const { t } = useLanguage();
     const [searchText, setSearchText] = useState('');
     const [recommendedAlbums, setRecommendedAlbums] = useState<PlayListResponse[]>([]);
     const [recommendedPlaylists, setRecommendedPlaylists] = useState<PlayListResponse[]>([]);
-    const [historyPlaylists, setHistoryPlaylists] = useState<PlayListResponse[]>([]);
+    const [historyPlaylists, setHistoryPlaylists] = useState<PlaylistHistoryItem[]>([]);
     const [recommendedArtists, setRecommendedArtists] = useState<ArtistResponse[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -97,6 +100,14 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
         }));
     };
 
+    const convertHistoryToPlaylistItems = (historyItems: PlaylistHistoryItem[]): PlaylistItem[] => {
+        return historyItems.map(item => ({
+            id: item.playlist.id.toString(),
+            title: item.playlist.name,
+            image: item.playlist.avatar_url || 'https://via.placeholder.com/150'
+        }));
+    };
+
     // Convert ArtistResponse to ArtistItem
     const convertToArtistItems = (artists: ArtistResponse[]): ArtistItem[] => {
         return artists.map(artist => ({
@@ -108,14 +119,10 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
 
     const handlePlaylistPress = async (item: AlbumItem | PlaylistItem) => {
         try {
-            const musicService = new MusicService();
             const playlistId = parseInt(item.id);
-
-            // Fetch songs for this playlist/album
-            const result = await musicService.getMusicByPlaylistId(playlistId);
+            const result = await MusicService.getMusicByPlaylistId(playlistId);
 
             if (result.success && result.data) {
-                // Transform MusicResponse to Song format
                 const songs = result.data.map((music: MusicResponse) => ({
                     id: music.id.toString(),
                     title: music.name,
@@ -123,8 +130,8 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                     cover: music.avatar_url,
                 }));
 
-                // Navigate to PlaylistScreen with the data
                 navigation.navigate('Playlist', {
+                    playlistId: playlistId,
                     playlistTitle: item.title,
                     playlistCover: item.image,
                     description: `${songs.length} songs`,
@@ -154,7 +161,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                     <Ionicons name="search-outline" size={20} color={COLORS.textSecondary} />
                     <TextInput
                         style={styles.input}
-                        placeholder="What do you want to listen to?"
+                        placeholder={t('whatToListen')}
                         placeholderTextColor={COLORS.textSecondary}
                         selectionColor={COLORS.primary}
                         value={searchText}
@@ -168,7 +175,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                     )}
                 </View>
                 <TouchableOpacity onPress={handleCancel}>
-                    <Text style={styles.cancelText}>Cancel</Text>
+                    <Text style={styles.cancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -182,7 +189,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
             >
                 {searchText ? (
                     <Text style={styles.placeholderText}>
-                        {`Kết quả cho "${searchText}"`}
+                        {`${t('resultsFor')} "${searchText}"`}
                     </Text>
                 ) : (
                     <>
@@ -195,7 +202,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                                 {/* Có thể hợp với bạn Section - Albums */}
                                 {recommendedAlbums.length > 0 && (
                                     <AlbumSection
-                                        title="Có thể hợp với bạn"
+                                        title={t('mightSuitYou')}
                                         albums={convertToAlbumItems(recommendedAlbums.slice(0, 8))}
                                         onPressAlbum={handlePlaylistPress}
                                     />
@@ -204,7 +211,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                                 {/* Bạn nên thử các playlists sau Section */}
                                 {recommendedPlaylists.length > 0 && (
                                     <PlaylistSection
-                                        title="Bạn nên thử các playlists sau"
+                                        title={t('tryThesePlaylists')}
                                         playlists={convertToPlaylistItems(recommendedPlaylists.slice(0, 4))}
                                         onPressPlaylist={handlePlaylistPress}
                                     />
@@ -213,8 +220,8 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                                 {/* Tiếp tục nghe Section */}
                                 {historyPlaylists.length > 0 && (
                                     <PlaylistSection
-                                        title="Tiếp tục nghe"
-                                        playlists={convertToPlaylistItems(historyPlaylists)}
+                                        title={t('continueListening')}
+                                        playlists={convertHistoryToPlaylistItems(historyPlaylists)}
                                         onPressPlaylist={handlePlaylistPress}
                                     />
                                 )}
@@ -222,7 +229,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                                 {/* Các nghệ sĩ bạn có thể thích Section */}
                                 {recommendedArtists.length > 0 && (
                                     <ArtistSection
-                                        title="Các nghệ sĩ bạn có thể thích"
+                                        title={t('artistsYouMightLike')}
                                         artists={convertToArtistItems(recommendedArtists.slice(0, 4))}
                                         onPressArtist={handleArtistPress}
                                     />
@@ -231,7 +238,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                                 {/* Empty state when no data */}
                                 {recommendedAlbums.length === 0 && recommendedPlaylists.length === 0 && historyPlaylists.length === 0 && recommendedArtists.length === 0 && (
                                     <Text style={styles.placeholderText}>
-                                        Nhập để tìm kiếm
+                                        {t('typeToSearch')}
                                     </Text>
                                 )}
                             </>

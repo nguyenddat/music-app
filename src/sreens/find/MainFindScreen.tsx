@@ -19,6 +19,8 @@ import PlaylistService, { PlayListResponse } from '../../services/PlaylistServic
 import MusicService, { MusicResponse } from '../../services/MusicService';
 import UserService, { SearchHistoryResponse } from '../../services/UserService';
 
+import { useLanguage, TranslationKey } from '../../contexts/LanguageContext';
+
 interface MainFindScreenProps {
     navigation: any;
 }
@@ -33,9 +35,11 @@ interface UnifiedSearchResult {
 }
 
 const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
+    const { t } = useLanguage();
     const [searchText, setSearchText] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
-    const filters = ['All', 'Artists', 'Songs', 'Albums', 'Playlists'];
+    // We'll translate filters in display, or keep ID internal
+    const filterKeys: TranslationKey[] = ['all', 'artists', 'songs', 'albums', 'playlists'];
     const [allResults, setAllResults] = useState<UnifiedSearchResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchHistory, setSearchHistory] = useState<SearchHistoryResponse[]>([]);
@@ -138,16 +142,16 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
         if (loading) return; // Prevent multiple taps
 
         setLoading(true);
+        console.log('Fetching songs for playlist:', result.originalData.id);
         try {
-            // 1. Fetch songs for this playlist/album
-            // Assuming both Album and Playlist use the same song fetching structure for now
-            // or if Albums have different ID logic, handle here. 
-            // result.originalData.id is the playlist/album ID.
-            const musicResponse = await MusicService.getMusicByPlaylistId(result.originalData.id);
+            const musicResponse = await MusicService.getMusicByPlaylistId(Number(result.originalData.id));
+
+            // Log history
+            if (result.type === 'Album' || result.type === 'Playlist') {
+                PlaylistService.createHistoryPlaylist({ playlist_id: Number(result.originalData.id) }).catch(console.error);
+            }
 
             if (musicResponse.success) {
-                // 2. Map APIs MusicResponse to Song interface for UI
-                // interface Song { id: string; title: string; artist: string; cover: string; duration?: number; isLiked?: boolean; }
                 const mappedSongs = musicResponse.data.map((m: MusicResponse) => ({
                     id: m.id.toString(),
                     title: m.name,
@@ -157,8 +161,9 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
                     isLiked: false // Default
                 }));
 
-                // 3. Navigate to PlaylistScreen
+                console.log('Navigating to Playlist with', mappedSongs.length, 'songs');
                 navigation.navigate('Playlist', {
+                    playlistId: result.originalData.id,
                     playlistTitle: result.title,
                     playlistCover: result.avatar,
                     songs: mappedSongs,
@@ -168,7 +173,6 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
                 addToHistory(result.title);
             } else {
                 console.error('Failed to fetch songs:', musicResponse.error);
-                // Optionally show alert
             }
 
         } catch (error) {
@@ -179,10 +183,13 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
     };
 
     const filteredResults = allResults.filter(item => {
-        if (activeFilter === 'All') return true;
-        if (activeFilter === 'Artists') return item.type === 'Artist';
-        if (activeFilter === 'Albums') return item.type === 'Album';
-        if (activeFilter === 'Playlists') return item.type === 'Playlist';
+        if (activeFilter === 'all') return true; // Keep internal state as keys or english?
+        // Wait, activeFilter state is set to filterKey (TranslationKey)
+        // So we need to match it.
+        if (activeFilter === 'all') return true;
+        if (activeFilter === 'artists') return item.type === 'Artist';
+        if (activeFilter === 'albums') return item.type === 'Album';
+        if (activeFilter === 'playlists') return item.type === 'Playlist';
         return true;
     });
 
@@ -196,7 +203,7 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
                     <Ionicons name="search" size={20} color="#fff" />
                     <TextInput
                         style={styles.input}
-                        placeholder="Bạn muốn nghe gì?"
+                        placeholder={t('whatToListen')}
                         placeholderTextColor="#a7a7a7"
                         value={searchText}
                         onChangeText={setSearchText}
@@ -208,7 +215,7 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
                     />
                 </View>
                 <TouchableOpacity onPress={handleCancel}>
-                    <Text style={styles.cancelText}>Hủy</Text>
+                    <Text style={styles.cancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -216,14 +223,14 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
             {searchText.length > 0 && (
                 <View style={styles.chipsContainer}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
-                        {filters.map(filter => (
+                        {filterKeys.map(filterKey => (
                             <TouchableOpacity
-                                key={filter}
-                                onPress={() => setActiveFilter(filter)}
-                                style={[styles.chip, activeFilter === filter && styles.activeChip]}
+                                key={filterKey}
+                                onPress={() => setActiveFilter(filterKey)}
+                                style={[styles.chip, activeFilter === filterKey && styles.activeChip]}
                             >
-                                <Text style={[styles.chipText, activeFilter === filter && styles.activeChipText]}>
-                                    {filter}
+                                <Text style={[styles.chipText, activeFilter === filterKey && styles.activeChipText]}>
+                                    {t(filterKey)}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -234,7 +241,7 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
                 {!searchText.trim() ? (
                     <>
-                        <Text style={styles.sectionTitle}>Nội dung tìm kiếm gần đây</Text>
+                        <Text style={styles.sectionTitle}>{t('recentSearches')}</Text>
                         <View style={styles.quickRecommendations}>
                             {searchHistory.length > 0 ? (
                                 searchHistory.map((history) => (
@@ -247,7 +254,7 @@ const MainFindScreen: React.FC<MainFindScreenProps> = ({ navigation }) => {
                                     </TouchableOpacity>
                                 ))
                             ) : (
-                                <Text style={styles.emptyText}>Chưa có lịch sử tìm kiếm</Text>
+                                <Text style={styles.emptyText}>{t('noSearchHistory')}</Text>
                             )}
                         </View>
                     </>

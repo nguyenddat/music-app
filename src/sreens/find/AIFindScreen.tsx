@@ -7,6 +7,8 @@ import { COLORS } from '../../constants/colors';
 import { FONTS } from '../../constants/typography';
 import MusicService, { MusicMatchResponse } from '../../services/MusicService';
 
+import { useLanguage } from '../../contexts/LanguageContext';
+
 const { width } = Dimensions.get('window');
 
 interface AIFindScreenProps {
@@ -14,6 +16,7 @@ interface AIFindScreenProps {
 }
 
 const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
+    const { t } = useLanguage();
     const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [matchResults, setMatchResults] = useState<MusicMatchResponse[]>([]);
@@ -35,7 +38,7 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
             }
         } catch (error) {
             console.error('Error picking document:', error);
-            Alert.alert('Error', 'Failed to pick file');
+            Alert.alert(t('error'), t('failedToPick'));
         }
     };
 
@@ -50,11 +53,11 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
             if (response.success) {
                 setMatchResults(response.data);
             } else {
-                Alert.alert('Error', 'Failed to match music');
+                Alert.alert(t('error'), t('failedToMatch'));
             }
         } catch (error) {
             console.error('Error matching music:', error);
-            Alert.alert('Error', 'An error occurred while matching music');
+            Alert.alert(t('error'), t('matchError'));
         } finally {
             setIsLoading(false);
         }
@@ -66,7 +69,7 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
             <View style={styles.header}>
                 <View style={{ flex: 1 }} />
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Text style={styles.cancelText}>Cancel</Text>
+                    <Text style={styles.cancelText}>{t('cancel')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -75,10 +78,10 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
                 <View style={styles.content}>
                     <View style={styles.glassCard}>
                         <Text style={styles.title}>
-                            Find Song by Audio/Video
+                            {t('findSongByAudio')}
                         </Text>
                         <Text style={styles.description}>
-                            Upload a video or audio file to find the matching song.
+                            {t('uploadHint')}
                         </Text>
 
                         <TouchableOpacity
@@ -108,12 +111,12 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
                                     <Text style={styles.uploadSubText}>
                                         {(selectedFile.size ? (selectedFile.size / 1024 / 1024).toFixed(2) : '0')} MB
                                     </Text>
-                                    <Text style={styles.changeFileText}>Tap to change file</Text>
+                                    <Text style={styles.changeFileText}>{t('tapToChange')}</Text>
                                 </>
                             ) : (
                                 <>
-                                    <Text style={styles.uploadText}>Tap to Upload File</Text>
-                                    <Text style={styles.uploadSubText}>Supports MP3, MP4</Text>
+                                    <Text style={styles.uploadText}>{t('tapToUpload')}</Text>
+                                    <Text style={styles.uploadSubText}>{t('supportsFormats')}</Text>
                                 </>
                             )}
                         </TouchableOpacity>
@@ -131,7 +134,7 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
                                 <ActivityIndicator color="#fff" />
                             ) : (
                                 <Text style={styles.findButtonText}>
-                                    {selectedFile ? "Find Match" : "Select a file first"}
+                                    {selectedFile ? t('findMatch') : t('selectFileFirst')}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -139,7 +142,7 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
                     {/* Results List */}
                     {matchResults.length > 0 && (
                         <View style={styles.resultsContainer}>
-                            <Text style={styles.resultsTitle}>Matching Results</Text>
+                            <Text style={styles.resultsTitle}>{t('matchingResults')}</Text>
                             {matchResults.map((result, index) => (
                                 <View key={result.id || index} style={styles.resultItem}>
                                     <Image
@@ -159,7 +162,7 @@ const AIFindScreen: React.FC<AIFindScreenProps> = ({ navigation }) => {
                                         ]}>
                                             {result.match_score}%
                                         </Text>
-                                        <Text style={styles.scoreLabel}>Match</Text>
+                                        <Text style={styles.scoreLabel}>{t('matchScore')}</Text>
                                     </View>
                                 </View>
                             ))}

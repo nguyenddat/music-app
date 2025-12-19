@@ -21,6 +21,15 @@ export interface MusicHistoryRequest {
     song_id: number;
 }
 
+export interface MusicHistoryItem {
+    id: number;
+    user_id: number;
+    song_id: number;
+    listened_at: string;
+    created_at: string;
+    song: MusicResponse;
+}
+
 class MusicService {
     // Lấy danh sách các bài nhạc tuần này
     async getWeeklyMusic(): Promise<{ success: boolean; data: MusicResponse[], error: any }> {
@@ -121,7 +130,7 @@ class MusicService {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                timeout: 60000, // 60 seconds timeout for large file uploads
+                timeout: 300000,
             });
             return { success: true, data: response.data, error: null };
         } catch (error) {
@@ -139,8 +148,10 @@ class MusicService {
         }
     }
 
+
+
     // Lấy danh sách lịch sử nghe nhạc
-    async getHistory(): Promise<{ success: boolean; data: MusicResponse[] | null; error: any }> {
+    async getHistory(): Promise<{ success: boolean; data: MusicHistoryItem[] | null; error: any }> {
         try {
             const response = await api.get('/history/song/');
             return { success: true, data: response.data, error: null };
@@ -153,6 +164,16 @@ class MusicService {
     async createHistory(request: MusicHistoryRequest): Promise<{ success: boolean; data: MusicResponse | null; error: any }> {
         try {
             const response = await api.post(`/history/song/`, request);
+            return { success: true, data: response.data, error: null };
+        } catch (error) {
+            return { success: false, data: null, error: error };
+        }
+    }
+
+    // Thêm nhạc vào playlists cá nhân
+    async addToPlaylist(playlistId: number, request: MusicHistoryRequest): Promise<{ success: boolean; data: MusicResponse | null; error: any }> {
+        try {
+            const response = await api.post(`/playlist/${playlistId}/songs`, request);
             return { success: true, data: response.data, error: null };
         } catch (error) {
             return { success: false, data: null, error: error };

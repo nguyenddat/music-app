@@ -1,6 +1,7 @@
 import React from 'react';
 
 import AlbumSection, { AlbumItem } from '../../components/AlbumSection';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const RECENT_DATA: AlbumItem[] = [
     { id: '1', title: "Today's Top Hits", image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80' },
@@ -12,21 +13,20 @@ const RECENT_DATA: AlbumItem[] = [
 ];
 
 const RecentPlaylists = () => {
+    const { t } = useLanguage();
     const handlePressAlbum = (album: AlbumItem) => {
         console.log('Pressed album:', album.title);
-        // Xử lý khi người dùng ấn vào album
     };
 
     const handlePressMore = () => {
         console.log('Pressed see more');
-        // Xử lý khi người dùng ấn "Xem thêm"
     };
 
     return (
         <AlbumSection
-            title="Recent playlists"
+            title={t('recentPlaylists')}
             albums={RECENT_DATA}
-            showMore={false} // Không hiển thị nút "Xem thêm" cho Recent playlists
+            showMore={false}
             onPressAlbum={handlePressAlbum}
             onPressMore={handlePressMore}
         />

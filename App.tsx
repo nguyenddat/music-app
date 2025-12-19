@@ -21,17 +21,19 @@ import RegisterScreen from './src/sreens/auth/RegisterScreen';
 import PlaylistScreen from './src/sreens/playlist/PlaylistScreen';
 import ArtistDetailScreen from './src/sreens/playlist/ArtistScreen';
 import PersonalScreen from './src/sreens/auth/PersonalScreen';
+import SettingsScreen from './src/sreens/auth/SettingsScreen';
 import { COLORS } from './src/constants/colors';
 
 import { MusicPlayerProvider } from './src/contexts/MusicPlayerContext';
 import UnifiedPlayer from './src/components/UnifiedPlayer';
+
+import { LanguageProvider } from './src/contexts/LanguageContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Placeholder screens for tabs that aren't implemented yet
 const PlaylistsScreen = () => <View style={{ flex: 1, backgroundColor: '#000' }} />;
-const SettingsScreen = () => <View style={{ flex: 1, backgroundColor: '#000' }} />;
 
 // Main Tab Navigator with bottom bar
 function MainTabs() {
@@ -97,29 +99,32 @@ export default function App() {
   }
 
   return (
-    <MusicPlayerProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen name="Genre" component={GenreScreen} />
-          <Stack.Screen name="Artist" component={ArtistScreen} />
-          <Stack.Screen name="Auth" component={AuthScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="MainTabs" component={MainTabs} />
-          <Stack.Screen name="MainFind" component={MainFindScreen} />
-          <Stack.Screen name="AIFind" component={AIFindScreen} />
-          <Stack.Screen name="Playlist" component={PlaylistScreen} />
-          <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
-          <Stack.Screen name="Personal" component={PersonalScreen} />
-        </Stack.Navigator>
+    <LanguageProvider>
+      <MusicPlayerProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Welcome" component={WelcomeScreen} />
+            <Stack.Screen name="Genre" component={GenreScreen} />
+            <Stack.Screen name="Artist" component={ArtistScreen} />
+            <Stack.Screen name="Auth" component={AuthScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="MainTabs" component={MainTabs} />
+            <Stack.Screen name="MainFind" component={MainFindScreen} />
+            <Stack.Screen name="AIFind" component={AIFindScreen} />
+            <Stack.Screen name="Playlist" component={PlaylistScreen} />
+            <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
+            <Stack.Screen name="Personal" component={PersonalScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+          </Stack.Navigator>
 
-        {/* Unified Player - renders above all screens */}
-        <UnifiedPlayer />
+          {/* Unified Player - renders above all screens */}
+          <UnifiedPlayer />
 
-        <StatusBar style="auto" />
-      </NavigationContainer>
-    </MusicPlayerProvider>
+          <StatusBar style="auto" />
+        </NavigationContainer>
+      </MusicPlayerProvider>
+    </LanguageProvider>
   );
 }
 

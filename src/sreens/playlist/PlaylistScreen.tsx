@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,13 +8,18 @@ import {
     FlatList,
     Dimensions,
     StatusBar,
-    SafeAreaView
+    SafeAreaView,
+    ActivityIndicator,
+    Modal,
+    TouchableWithoutFeedback,
+    Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { FONTS } from '../../constants/typography';
 import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
@@ -28,16 +33,143 @@ export interface Song {
     duration?: number;
 }
 
+import PlaylistService, { PlayListResponse } from '../../services/PlaylistService';
+import MusicService from '../../services/MusicService';
+import UserService from '../../services/UserService';
+
 const PlaylistScreen = ({ route, navigation }: any) => {
+    const { t } = useLanguage();
     const {
-        playlistTitle = "Alex + Sam",
+        playlistId: paramPlaylistId,
+        id: paramId, // Fallback if playlistId is missing
+        playlistTitle = t('playlistTitleDefault'),
         playlistCover,
         songs,
-        description = "A blend of music for Sam and Alex. Updates daily.",
-        dominantColor = '#2a4f38'
+        description = t('playlistDescDefault'),
+        dominantColor = '#2a4f38',
+        initialIsLiked
     } = route.params || {};
 
+    // Normalize playlistId
+    const playlistId = paramPlaylistId || paramId;
+
     const { currentSong, isPlaying, playSong, expandPlayer } = useMusicPlayer();
+    const [isLiked, setIsLiked] = useState<boolean>(initialIsLiked || false);
+    const [isLoadingLike, setIsLoadingLike] = useState(false);
+
+    // Add to Playlist State
+    const [isAddToPlaylistModalVisible, setAddToPlaylistModalVisible] = useState(false);
+    const [selectedSongToAdd, setSelectedSongToAdd] = useState<Song | null>(null);
+    const [userPlaylists, setUserPlaylists] = useState<PlayListResponse[]>([]);
+    const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
+
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    useEffect(() => {
+        console.log('PlaylistScreen Full Route:', route);
+        console.log('PlaylistScreen Params:', route.params);
+        console.log('Resolved Playlist ID:', playlistId);
+
+        // Only fetch if initialIsLiked is undefined (e.g. deep link or different nav)
+        if (initialIsLiked === undefined && playlistId) {
+            checkLikeStatus();
+        }
+    }, [playlistId, initialIsLiked]);
+
+    const checkLikeStatus = async () => {
+        if (!playlistId) {
+            console.log('No playlistId to check status');
+            return;
+        }
+        try {
+            const res = await PlaylistService.getLikedPlaylistStatus({ playlist_id: Number(playlistId) });
+            console.log('Check like status res:', res);
+            if (res.success && res.data) {
+                setIsLiked(res.data.is_liked);
+            } else {
+                // Fallback: check list manually if status endpoint fails/returns null
+                const listRes = await PlaylistService.getLikedPlaylists();
+                if (listRes.success && listRes.data) {
+                    const isFound = listRes.data.some((p: any) => p.playlist.id === Number(playlistId));
+                    setIsLiked(isFound);
+                }
+            }
+        } catch (e) {
+            console.error('Error checking like status:', e);
+        }
+    };
+
+    const fetchUserPlaylists = async () => {
+        setIsLoadingPlaylists(true);
+        try {
+            const res = await PlaylistService.getUserPlaylists();
+            if (res.success && res.data) {
+                setUserPlaylists(res.data);
+            }
+        } catch (error) {
+            console.error('Error fetching user playlists:', error);
+        } finally {
+            setIsLoadingPlaylists(false);
+        }
+    };
+
+    const openAddToPlaylistModal = (song: Song) => {
+        setSelectedSongToAdd(song);
+        setAddToPlaylistModalVisible(true);
+        fetchUserPlaylists();
+    };
+
+    const handleAddToPlaylist = async (targetPlaylistId: number) => {
+        if (!selectedSongToAdd) return;
+
+        try {
+            const res = await MusicService.addToPlaylist(targetPlaylistId, {
+                song_id: parseInt(selectedSongToAdd.id)
+            });
+
+            if (res.success) {
+                // Success - Just close modal, no alert
+                setAddToPlaylistModalVisible(false);
+            } else {
+                setErrorMessage(t('addToPlaylistError'));
+                setIsErrorModalVisible(true);
+            }
+        } catch (error) {
+            console.error('Error adding song to playlist:', error);
+            setErrorMessage(t('generalError'));
+            setIsErrorModalVisible(true);
+        }
+    };
+
+    const handleToggleLike = async () => {
+        if (!playlistId) {
+            console.error('Cannot toggle like: missing playlistId');
+            return;
+        }
+        if (isLoadingLike) return;
+
+        setIsLoadingLike(true);
+        try {
+            if (isLiked) {
+                // Unlike
+                console.log('Unliking playlist:', playlistId);
+                const res = await PlaylistService.deleteLikedPlaylist({ playlist_id: Number(playlistId) });
+                console.log('Unlike res:', res);
+                if (res.success) setIsLiked(false);
+            } else {
+                // Like
+                console.log('Liking playlist:', playlistId);
+                const res = await PlaylistService.createLikedPlaylist({ playlist_id: Number(playlistId) });
+                console.log('Like res:', res);
+                if (res.success) setIsLiked(true);
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        } finally {
+            setIsLoadingLike(false);
+        }
+    };
 
     // Convert Song to MusicResponse format for context
     const convertToMusicResponse = (song: Song, index: number) => ({
@@ -54,6 +186,13 @@ const PlaylistScreen = ({ route, navigation }: any) => {
     const handleSongPress = async (song: Song, index: number) => {
         const selectedSong = convertToMusicResponse(song, index);
         const playlist = songs.map((s: Song, i: number) => convertToMusicResponse(s, i));
+
+        // Record playlist history if playlistId exists
+        if (playlistId) {
+            PlaylistService.createHistoryPlaylist({ playlist_id: Number(playlistId) }).catch(err => {
+                console.error('Failed to create playlist history:', err);
+            });
+        }
 
         // Play song and expand player
         await playSong(selectedSong, playlist, index, dominantColor);
@@ -72,7 +211,10 @@ const PlaylistScreen = ({ route, navigation }: any) => {
                 <Text style={styles.songTitle} numberOfLines={1}>{item.title}</Text>
                 <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
             </View>
-            <TouchableOpacity style={styles.moreBtn}>
+            <TouchableOpacity
+                style={styles.moreBtn}
+                onPress={() => openAddToPlaylistModal(item)}
+            >
                 <Ionicons name="ellipsis-vertical" size={20} color="#B3B3B3" />
             </TouchableOpacity>
         </TouchableOpacity>
@@ -101,16 +243,36 @@ const PlaylistScreen = ({ route, navigation }: any) => {
                 {/* Spotify Logo & Metadata mimic */}
                 <View style={styles.metaRow}>
                     <Ionicons name="musical-notes" size={18} color="#1DB954" />
-                    <Text style={styles.metaText}> Playlist • {songs?.length || 0} songs</Text>
+                    <Text style={styles.metaText}> {t('playlistStats').replace('{{count}}', (songs?.length || 0).toString())}</Text>
                 </View>
             </View>
 
             {/* Action Row: Like, Download ... Play Button */}
             <View style={styles.actionsRow}>
                 <View style={styles.leftActions}>
-                    <TouchableOpacity style={styles.actionIcon}>
-                        <Ionicons name="heart-outline" size={26} color="#B3B3B3" />
-                    </TouchableOpacity>
+                    {/* Only show like button if playlistId exists */}
+                    {/* Only show like button if playlistId exists */}
+                    {playlistId ? (
+                        <TouchableOpacity
+                            style={styles.actionIcon}
+                            onPress={() => {
+                                console.log('[PlaylistScreen] Like button pressed. ID:', playlistId, 'Current Liked:', isLiked);
+                                handleToggleLike();
+                            }}
+                            disabled={isLoadingLike}
+                            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                        >
+                            {isLoadingLike ? (
+                                <ActivityIndicator size="small" color="#B3B3B3" />
+                            ) : (
+                                <Ionicons
+                                    name={isLiked ? "heart" : "heart-outline"}
+                                    size={26}
+                                    color={isLiked ? "#FF0000" : "#B3B3B3"} // Red when liked
+                                />
+                            )}
+                        </TouchableOpacity>
+                    ) : null}
                     <TouchableOpacity style={styles.actionIcon}>
                         <Ionicons name="arrow-down-circle-outline" size={26} color="#B3B3B3" />
                     </TouchableOpacity>
@@ -161,7 +323,6 @@ const PlaylistScreen = ({ route, navigation }: any) => {
                 />
             </SafeAreaView>
 
-            {/* Floating Back Button */}
             <TouchableOpacity
                 onPress={() => navigation.goBack()}
                 style={styles.backButton}
@@ -169,6 +330,83 @@ const PlaylistScreen = ({ route, navigation }: any) => {
             >
                 <Ionicons name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
+
+            {/* Add to Playlist Modal */}
+            <Modal
+                transparent={true}
+                visible={isAddToPlaylistModalVisible}
+                animationType="fade"
+                onRequestClose={() => setAddToPlaylistModalVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setAddToPlaylistModalVisible(false)}
+                >
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>{t('addToPlaylist')}</Text>
+
+                        {isLoadingPlaylists ? (
+                            <ActivityIndicator size="large" color="#1DB954" />
+                        ) : (
+                            <FlatList
+                                data={userPlaylists}
+                                keyExtractor={(item) => item.id.toString()}
+                                style={{ maxHeight: 300 }}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={styles.playlistItem}
+                                        onPress={() => handleAddToPlaylist(item.id)}
+                                    >
+                                        <Image
+                                            source={{ uri: item.avatar_url || 'https://via.placeholder.com/150' }}
+                                            style={styles.playlistThumb}
+                                        />
+                                        <Text style={styles.playlistName} numberOfLines={1}>{item.name}</Text>
+                                    </TouchableOpacity>
+                                )}
+                                ListEmptyComponent={
+                                    <Text style={styles.emptyText}>{t('noPlaylistsFound')}</Text>
+                                }
+                            />
+                        )}
+
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setAddToPlaylistModalVisible(false)}
+                        >
+                            <Text style={styles.closeButtonText}>{t('close')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* Custom Error Modal */}
+            <Modal
+                transparent={true}
+                visible={isErrorModalVisible}
+                animationType="fade"
+                onRequestClose={() => setIsErrorModalVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setIsErrorModalVisible(false)}
+                >
+                    <View style={[styles.modalContent, styles.errorModalContent]}>
+                        <Ionicons name="warning" size={48} color="#FF4D4D" style={{ marginBottom: 16 }} />
+                        <Text style={styles.errorTitle}>{t('error')}</Text>
+                        <Text style={styles.errorMessage}>{errorMessage}</Text>
+
+                        <TouchableOpacity
+                            style={styles.errorCloseButton}
+                            onPress={() => setIsErrorModalVisible(false)}
+                        >
+                            <Text style={styles.errorCloseButtonText}>{t('close')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 };
@@ -250,6 +488,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 20,
+        zIndex: 10,
     },
     leftActions: {
         flexDirection: 'row',
@@ -307,6 +546,93 @@ const styles = StyleSheet.create({
     },
     moreBtn: {
         padding: 8,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        width: '90%',
+        backgroundColor: '#1E1E1E',
+        borderRadius: 12,
+        padding: 20,
+        maxHeight: '70%',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontFamily: FONTS.GilroyBold,
+        color: '#FFF',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    playlistItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#333',
+    },
+    playlistThumb: {
+        width: 50,
+        height: 50,
+        borderRadius: 4,
+        marginRight: 12,
+    },
+    playlistName: {
+        flex: 1,
+        fontSize: 16,
+        fontFamily: FONTS.GilroyMedium,
+        color: '#FFF',
+    },
+    closeButton: {
+        marginTop: 20,
+        alignItems: 'center',
+        padding: 12,
+        backgroundColor: '#333',
+        borderRadius: 8,
+    },
+    closeButtonText: {
+        color: '#FFF',
+        fontFamily: FONTS.GilroyBold,
+    },
+    emptyText: {
+        color: '#B3B3B3',
+        textAlign: 'center',
+        marginVertical: 20,
+        fontFamily: FONTS.GilroyMedium,
+    },
+    // Error Modal Specific
+    errorModalContent: {
+        alignItems: 'center',
+        paddingVertical: 30,
+    },
+    errorTitle: {
+        fontSize: 22,
+        fontFamily: FONTS.GilroyBold,
+        color: '#FF4D4D',
+        marginBottom: 8,
+    },
+    errorMessage: {
+        fontSize: 16,
+        fontFamily: FONTS.GilroyMedium,
+        color: '#CCC',
+        textAlign: 'center',
+        marginBottom: 24,
+    },
+    errorCloseButton: {
+        backgroundColor: '#FF4D4D',
+        paddingHorizontal: 32,
+        paddingVertical: 12,
+        borderRadius: 24,
+    },
+    errorCloseButtonText: {
+        color: '#FFF',
+        fontFamily: FONTS.GilroyBold,
+        fontSize: 16,
     },
 });
 

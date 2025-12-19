@@ -19,7 +19,7 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
         <SafeAreaView edges={['top']} style={styles.safeArea}>
             <View style={styles.container}>
                 {/* Left: User Avatar */}
-                <TouchableOpacity activeOpacity={0.8}>
+                <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('Settings')}>
                     <Image
                         source={{ uri: AVATAR_URL }}
                         style={styles.avatar}

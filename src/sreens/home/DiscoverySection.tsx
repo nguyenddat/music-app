@@ -7,53 +7,57 @@ import DiscoveryCard, { DiscoveryItem } from '../../components/DiscoveryCard';
 import { COLORS } from '../../constants/colors';
 import { FONTS } from '../../constants/typography';
 import MusicService, { MusicResponse } from '../../services/MusicService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
-const DISCOVERY_DATA = [
-    {
-        id: '1',
-        title: 'Nhạc tuần này',
-        subtitle: 'Playlist chọn lọc xu hướng mới nhất.',
-        image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=2070&auto=format&fit=crop',
-        backgroundColor: '#E3C7F6', // tím nhạt
-    },
-    {
-        id: '2',
-        title: 'Idols mới ra nhạc',
-        subtitle: 'Đừng bỏ lỡ ca khúc mới từ nghệ sĩ yêu thích.',
-        image: 'https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?q=80&w=2070&auto=format&fit=crop',
-        backgroundColor: '#C7F6E8', // xanh bạc hà nhạt
-    },
-    {
-        id: '3',
-        title: 'Bài nhạc theo gu',
-        subtitle: 'Những giai điệu phù hợp âm nhạc.',
-        image: 'https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?q=80&w=2070&auto=format&fit=crop',
-        backgroundColor: '#F6E3C7', // cam nhạt
-    },
-    {
-        id: '4',
-        title: 'Nghệ sĩ mới',
-        subtitle: 'Khám phá tài năng mới và các bài hit tiềm năng.',
-        image: 'https://images.unsplash.com/photo-1497032205916-ac775f0649ae?q=80&w=2070&auto=format&fit=crop',
-        backgroundColor: '#FFD6D6', // hồng nhạt
-    },
-    {
-        id: '5',
-        title: 'Thử dòng nhạc mới',
-        subtitle: 'Nghe thử thể loại chưa từng thử.',
-        image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=2070&auto=format&fit=crop',
-        backgroundColor: '#C7D6F6', // xanh dương nhạt
-    },
-];
+const DISCOVERY_IDS = ['1', '2', '3', '4', '5'];
 
 interface DiscoverySectionProps {
     navigation?: any;
 }
 
 const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
+    const { t } = useLanguage();
     const progress = useSharedValue(0);
+
+    const discoveryData = [
+        {
+            id: '1',
+            title: t('weeklyMusic'),
+            subtitle: t('weeklyMusicSubtitle'),
+            image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=2070&auto=format&fit=crop',
+            backgroundColor: '#E3C7F6',
+        },
+        {
+            id: '2',
+            title: t('newIdols'),
+            subtitle: t('newIdolsSubtitle'),
+            image: 'https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?q=80&w=2070&auto=format&fit=crop',
+            backgroundColor: '#C7F6E8',
+        },
+        {
+            id: '3',
+            title: t('tasteMatch'),
+            subtitle: t('tasteMatchSubtitle'),
+            image: 'https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?q=80&w=2070&auto=format&fit=crop',
+            backgroundColor: '#F6E3C7',
+        },
+        {
+            id: '4',
+            title: t('newArtists'),
+            subtitle: t('newArtistsSubtitle'),
+            image: 'https://images.unsplash.com/photo-1497032205916-ac775f0649ae?q=80&w=2070&auto=format&fit=crop',
+            backgroundColor: '#FFD6D6',
+        },
+        {
+            id: '5',
+            title: t('tryNewGenres'),
+            subtitle: t('tryNewGenresSubtitle'),
+            image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=2070&auto=format&fit=crop',
+            backgroundColor: '#C7D6F6',
+        },
+    ];
 
     const handlePlayPress = async (itemId: string) => {
         const musicService = MusicService;
@@ -163,13 +167,13 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Curated & trending</Text>
+            <Text style={styles.sectionTitle}>{t('curatedTrending')}</Text>
 
             <Carousel
                 loop
                 width={width}
                 height={180}
-                data={DISCOVERY_DATA}
+                data={discoveryData}
                 pagingEnabled
                 snapEnabled
                 scrollAnimationDuration={900}
@@ -192,7 +196,7 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
             />
 
             {/* Dot indicator */}
-            <Dots data={DISCOVERY_DATA} progress={progress} />
+            <Dots data={discoveryData} progress={progress} />
         </View>
     );
 };

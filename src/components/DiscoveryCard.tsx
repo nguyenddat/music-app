@@ -2,14 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { COLORS } from '../constants/colors';
 import { FONTS } from '../constants/typography';
 
 const { width } = Dimensions.get('window');
 
-// Kích thước card (Full màn hình trừ đi lề 2 bên 20px -> Tổng 40px)
 const CARD_WIDTH = width - 40;
-const CARD_HEIGHT = 160; // Giảm chiều cao chút cho thon gọn giống design
+const CARD_HEIGHT = 160;
 
 export interface DiscoveryItem {
     id: string;

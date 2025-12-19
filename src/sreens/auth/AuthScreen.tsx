@@ -15,11 +15,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../constants/colors';
 import { FONTS } from '../../constants/typography';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 const AuthScreen = () => {
     const navigation = useNavigation();
+    const { t } = useLanguage();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(30)).current;
 
@@ -69,10 +71,10 @@ const AuthScreen = () => {
                     ]}
                 >
                     <Text style={styles.title}>
-                        Thế giới âm nhạc{'\n'}trong tầm tay
+                        {t('musicWorld')}
                     </Text>
                     <Text style={styles.subtitle}>
-                        Trải nghiệm âm thanh chất lượng cao cùng hàng triệu bài hát bản quyền.
+                        {t('experienceAudio')}
                     </Text>
 
                     {/* Buttons */}
@@ -86,10 +88,8 @@ const AuthScreen = () => {
                             <LinearGradient
                                 colors={[COLORS.primary, COLORS.secondary]}
                                 start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={styles.buttonGradient}
                             >
-                                <Text style={styles.primaryButtonText}>Đăng nhập</Text>
+                                <Text style={styles.primaryButtonText}>{t('login')}</Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
@@ -97,7 +97,7 @@ const AuthScreen = () => {
                         <TouchableOpacity style={styles.appleButton} activeOpacity={0.7}>
                             <View style={styles.appleButtonContent}>
                                 <Ionicons name="logo-apple" size={24} color={COLORS.white} />
-                                <Text style={styles.appleButtonText}>Tiếp tục với Apple</Text>
+                                <Text style={styles.appleButtonText}>{t('continueWithApple')}</Text>
                             </View>
                         </TouchableOpacity>
 
@@ -106,9 +106,9 @@ const AuthScreen = () => {
 
                 {/* Footer */}
                 <View style={styles.footer}>
-                    <Text style={styles.footerText}>Chưa có tài khoản? </Text>
+                    <Text style={styles.footerText}>{t('noAccount')}</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('Register' as never)}>
-                        <Text style={styles.registerLink}>Đăng ký ngay</Text>
+                        <Text style={styles.registerLink}>{t('registerNow')}</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

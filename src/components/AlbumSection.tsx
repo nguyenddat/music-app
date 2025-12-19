@@ -23,6 +23,8 @@ interface AlbumSectionProps {
     showMore?: boolean;
     onPressAlbum?: (album: AlbumItem) => void;
     onPressMore?: () => void;
+    headerRight?: React.ReactNode;
+    emptyComponent?: React.ReactNode;
 }
 
 const AlbumSection: React.FC<AlbumSectionProps> = ({
@@ -31,13 +33,18 @@ const AlbumSection: React.FC<AlbumSectionProps> = ({
     showMore = false,
     onPressAlbum,
     onPressMore,
+    headerRight,
+    emptyComponent,
 }) => {
     return (
         <View style={styles.container}>
-            {/* Header với title và nút "Xem thêm" */}
+            {/* Header với title và nút "Xem thêm" hoặc headerRight */}
             <View style={styles.header}>
                 <Text style={styles.sectionTitle}>{title}</Text>
-                {showMore && (
+
+                {headerRight ? (
+                    headerRight
+                ) : showMore && (
                     <TouchableOpacity
                         onPress={onPressMore}
                         activeOpacity={0.7}
@@ -50,29 +57,33 @@ const AlbumSection: React.FC<AlbumSectionProps> = ({
             </View>
 
             {/* Grid của các album */}
-            <View style={styles.gridContainer}>
-                {albums.map((album) => (
-                    <TouchableOpacity
-                        key={album.id}
-                        style={styles.card}
-                        activeOpacity={0.7}
-                        onPress={() => onPressAlbum?.(album)}
-                    >
-                        {/* Ảnh bên trái */}
-                        <Image
-                            source={{ uri: album.image }}
-                            style={styles.coverImage}
-                        />
+            {albums.length > 0 ? (
+                <View style={styles.gridContainer}>
+                    {albums.map((album) => (
+                        <TouchableOpacity
+                            key={album.id}
+                            style={styles.card}
+                            activeOpacity={0.7}
+                            onPress={() => onPressAlbum?.(album)}
+                        >
+                            {/* Ảnh bên trái */}
+                            <Image
+                                source={{ uri: album.image }}
+                                style={styles.coverImage}
+                            />
 
-                        {/* Text bên phải */}
-                        <View style={styles.textContainer}>
-                            <Text style={styles.albumTitle} numberOfLines={2}>
-                                {album.title}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-            </View>
+                            {/* Text bên phải */}
+                            <View style={styles.textContainer}>
+                                <Text style={styles.albumTitle} numberOfLines={2}>
+                                    {album.title}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            ) : (
+                emptyComponent || null
+            )}
         </View>
     );
 };

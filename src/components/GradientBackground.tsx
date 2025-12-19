@@ -18,9 +18,8 @@ import { COLORS } from "../constants/colors";
 const { width, height } = Dimensions.get('window');
 
 const GradientBackground = ({ children }: { children: React.ReactNode }) => {
-    // Cấu hình kích thước Blob dựa trên màn hình để scale tốt trên mọi thiết bị
-    const r1 = width * 0.8; // Bán kính lớn cho mảng màu chính
-    const r2 = width * 0.6; // Bán kính vừa cho điểm nhấn
+    const r1 = width * 0.8;
+    const r2 = width * 0.6;
 
     return (
         <View style={styles.container}>

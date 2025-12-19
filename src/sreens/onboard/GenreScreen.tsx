@@ -20,6 +20,7 @@ import { COLORS } from '../../constants/colors';
 import { FONTS } from '../../constants/typography';
 import GenreService, { GenreResponse } from '../../services/GenreService';
 import UserService, { OnboardingStep } from '../../services/UserService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 
 const { width } = Dimensions.get('window');
@@ -30,6 +31,7 @@ const CURRENT_STEP = 2; // Genre Screen is Step 2
 
 const GenreScreen = () => {
     const navigation = useNavigation();
+    const { t } = useLanguage();
     const [genres, setGenres] = useState<GenreResponse[]>([]);
     const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,11 +73,11 @@ const GenreScreen = () => {
                 setGenres(response.data);
             } else {
                 console.error("Failed to fetch genres:", response.error);
-                Alert.alert("Lỗi", "Không thể tải danh sách thể loại.");
+                Alert.alert(t('error'), t('cannotLoadGenres'));
             }
         } catch (error) {
             console.error("Error fetching genres:", error);
-            Alert.alert("Lỗi", "Đã xảy ra lỗi kết nối.");
+            Alert.alert(t('error'), t('connectionError'));
         } finally {
             setLoading(false);
         }
@@ -119,11 +121,11 @@ const GenreScreen = () => {
                 // Navigate to next screen (Artist)
                 navigation.navigate('Artist' as never);
             } else {
-                Alert.alert("Lỗi", "Không thể lưu thể loại. Vui lòng thử lại.");
+                Alert.alert(t('error'), t('cannotSaveGenres'));
             }
         } catch (error) {
             console.error("Error sending genres:", error);
-            Alert.alert("Lỗi", "Đã xảy ra lỗi kết nối.");
+            Alert.alert(t('error'), t('connectionError'));
         } finally {
             setSubmitting(false);
         }
@@ -182,11 +184,11 @@ const GenreScreen = () => {
                     </TouchableOpacity>
 
                     <Text style={styles.progressText}>
-                        Step {CURRENT_STEP} / {TOTAL_STEPS}
+                        {t('step')} {CURRENT_STEP} / {TOTAL_STEPS}
                     </Text>
 
                     <TouchableOpacity onPress={handleSkip} style={styles.navButton}>
-                        <Text style={styles.skipText}>Skip</Text>
+                        <Text style={styles.skipText}>{t('skip')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -212,9 +214,9 @@ const GenreScreen = () => {
                         },
                     ]}
                 >
-                    <Text style={styles.title}>Chọn thể loại{'\n'}bạn yêu thích</Text>
+                    <Text style={styles.title}>{t('chooseGenres')}</Text>
                     <Text style={styles.subtitle}>
-                        Để chúng tôi gợi ý nhạc phù hợp nhất
+                        {t('recommendBestMusic')}
                     </Text>
 
                     {loading ? (
@@ -256,14 +258,14 @@ const GenreScreen = () => {
                                     <ActivityIndicator color={COLORS.white} />
                                 ) : (
                                     <>
-                                        <Text style={styles.ctaText}>Tiếp tục ({selectedGenres.length})</Text>
+                                        <Text style={styles.ctaText}>{t('continue')} ({selectedGenres.length})</Text>
                                         <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
                                     </>
                                 )}
                             </LinearGradient>
                         ) : (
                             <View style={[styles.ctaGradient, { backgroundColor: COLORS.border }]}>
-                                <Text style={[styles.ctaText, { color: COLORS.textSecondary }]}>Chọn thể loại</Text>
+                                <Text style={[styles.ctaText, { color: COLORS.textSecondary }]}>{t('selectGenres')}</Text>
                             </View>
                         )}
                     </TouchableOpacity>

@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import { FONTS } from '../../constants/typography';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ const CURRENT_STEP = 1;
 
 const WelcomeScreen = () => {
     const navigation = useNavigation();
+    const { t } = useLanguage();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(30)).current;
     const progressAnim = useRef(new Animated.Value(0)).current;
@@ -69,11 +71,11 @@ const WelcomeScreen = () => {
                     </View>
 
                     <Text style={styles.progressText}>
-                        Step {CURRENT_STEP} / {TOTAL_STEPS}
+                        {t('step')} {CURRENT_STEP} / {TOTAL_STEPS}
                     </Text>
 
                     <View style={[styles.navButton, { opacity: 0 }]}>
-                        <Text style={styles.skipText}>Skip</Text>
+                        <Text style={styles.skipText}>{t('skip')}</Text>
                     </View>
                 </View>
 
@@ -100,11 +102,11 @@ const WelcomeScreen = () => {
                     ]}
                 >
                     {/* Title */}
-                    <Text style={styles.title}>Chào mừng bạn đến{'\n'}với MusicApp</Text>
+                    <Text style={styles.title}>{t('welcomeTitle')}</Text>
 
                     {/* Subtitle */}
                     <Text style={styles.subtitle}>
-                        Khám phá âm nhạc theo cách của riêng bạn
+                        {t('welcomeSubtitle')}
                     </Text>
 
                     {/* Content Card */}
@@ -114,8 +116,8 @@ const WelcomeScreen = () => {
                                 <Ionicons name="musical-notes" size={28} color={COLORS.primary} />
                             </View>
                             <View style={styles.featureText}>
-                                <Text style={styles.featureTitle}>Hàng triệu bài hát</Text>
-                                <Text style={styles.featureDesc}>Nghe nhạc không giới hạn</Text>
+                                <Text style={styles.featureTitle}>{t('millionsSongs')}</Text>
+                                <Text style={styles.featureDesc}>{t('unlimitedListening')}</Text>
                             </View>
                         </View>
 
@@ -126,8 +128,8 @@ const WelcomeScreen = () => {
                                 <Ionicons name="sparkles" size={28} color={COLORS.primary} />
                             </View>
                             <View style={styles.featureText}>
-                                <Text style={styles.featureTitle}>Gợi ý thông minh</Text>
-                                <Text style={styles.featureDesc}>AI hiểu gu nhạc của bạn</Text>
+                                <Text style={styles.featureTitle}>{t('smartRecommendations')}</Text>
+                                <Text style={styles.featureDesc}>{t('aiUnderstand')}</Text>
                             </View>
                         </View>
 
@@ -138,8 +140,8 @@ const WelcomeScreen = () => {
                                 <Ionicons name="download" size={28} color={COLORS.primary} />
                             </View>
                             <View style={styles.featureText}>
-                                <Text style={styles.featureTitle}>Nghe offline</Text>
-                                <Text style={styles.featureDesc}>Tải về nghe mọi lúc mọi nơi</Text>
+                                <Text style={styles.featureTitle}>{t('listenOffline')}</Text>
+                                <Text style={styles.featureDesc}>{t('downloadAnywhere')}</Text>
                             </View>
                         </View>
                     </View>
@@ -158,7 +160,7 @@ const WelcomeScreen = () => {
                             end={{ x: 1, y: 0 }}
                             style={styles.ctaGradient}
                         >
-                            <Text style={styles.ctaText}>Bắt đầu</Text>
+                            <Text style={styles.ctaText}>{t('getStarted')}</Text>
                             <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
                         </LinearGradient>
                     </TouchableOpacity>

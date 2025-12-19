@@ -18,6 +18,7 @@ import { useNavigationState } from '@react-navigation/native';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { COLORS } from '../constants/colors';
 import { FONTS } from '../constants/typography';
+import MusicService from '../services/MusicService';
 
 const { width, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ALBUM_ART_SIZE = width * 0.8;
@@ -42,6 +43,7 @@ const UnifiedPlayer = () => {
         toggleRepeat,
         minimizePlayer,
         expandPlayer,
+        seekTo,
     } = useMusicPlayer();
 
     const [isLiked, setIsLiked] = React.useState(false);
@@ -100,6 +102,30 @@ const UnifiedPlayer = () => {
             ]).start();
         }
     }, [isPlayerExpanded]);
+
+    useEffect(() => {
+        if (currentSong?.id) {
+            MusicService.createHistory({ song_id: currentSong.id })
+                .then((res) => {
+                    if (res.success) {
+                        console.log('Logged history for song:', currentSong.id);
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [currentSong?.id]);
+
+    useEffect(() => {
+        if (currentSong?.id) {
+            MusicService.createHistory({ song_id: currentSong.id })
+                .then((res) => {
+                    if (res.success) {
+                        console.log('Logged history for song:', currentSong.id);
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [currentSong?.id]);
 
     useEffect(() => {
         Animated.spring(scaleAnim, {

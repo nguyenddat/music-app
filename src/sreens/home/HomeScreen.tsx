@@ -12,7 +12,10 @@ interface HomeScreenProps {
     navigation: any;
 }
 
+import { useLanguage } from '../../contexts/LanguageContext';
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+    const { t } = useLanguage();
     const scrollViewRef = useRef<ScrollView>(null);
     const recentRef = useRef<View>(null);
     const discoveryRef = useRef<View>(null);
@@ -87,7 +90,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 {/* Trending Playlists */}
                 <View ref={trendingRef}>
                     <UniversalSection
-                        title="Trending Playlists"
+                        title={t('trendingPlaylists')}
                         data={TRENDING_PLAYLISTS}
                         onPressItem={(item) => console.log('Pressed:', item.title)}
                     />
@@ -96,7 +99,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 {/* Top Playlists */}
                 <View ref={topRef}>
                     <UniversalSection
-                        title="Top Playlists"
+                        title={t('topPlaylists')}
                         data={TOP_PLAYLISTS}
                         onPressItem={(item) => console.log('Pressed:', item.title)}
                     />
@@ -105,7 +108,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 {/* Your Playlists */}
                 <View ref={yourPlaylistsRef}>
                     <UniversalSection
-                        title="Các Playlist Của Bạn"
+                        title={t('yourPlaylists')}
                         data={YOUR_PLAYLISTS}
                         onPressItem={(item) => console.log('Pressed:', item.title)}
                     />
@@ -114,7 +117,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 {/* Made For You */}
                 <View ref={madeForYouRef}>
                     <UniversalSection
-                        title="Các Playlist Chúng Tôi Tạo Cho Bạn"
+                        title={t('madeForYou')} // "Các Playlist Chúng Tôi Tạo Cho Bạn" is close enough or add specific key
                         data={MADE_FOR_YOU}
                         onPressItem={(item) => console.log('Pressed:', item.title)}
                     />

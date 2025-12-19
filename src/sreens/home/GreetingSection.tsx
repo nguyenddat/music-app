@@ -4,32 +4,33 @@ import { COLORS } from '../../constants/colors';
 import { FONTS, TYPOGRAPHY } from '../../constants/typography';
 import { useAuth } from '../../hooks/useAuth';
 import { MeResponse } from '../../services/UserService';
+import { useLanguage, TranslationKey } from '../../contexts/LanguageContext';
 
-const SECTIONS = ['Recent', 'Discovery', 'Trending', 'Top', 'Your Playlists', 'Made For You'];
+const SECTIONS_KEYS: TranslationKey[] = ['recent', 'discovery', 'trending', 'top', 'yourPlaylists', 'madeForYou'];
 
 interface GreetingSectionProps {
     onSectionPress: (sectionName: string) => void;
     activeSection: string;
 }
 
-// Function to get greeting based on time
-const getGreeting = (): string => {
+const getGreetingKey = (): TranslationKey => {
     const hour = new Date().getHours();
 
     if (hour >= 5 && hour < 12) {
-        return 'Good morning';
+        return 'goodMorning';
     } else if (hour >= 12 && hour < 18) {
-        return 'Good afternoon';
+        return 'goodAfternoon';
     } else {
-        return 'Good evening';
+        return 'goodEvening';
     }
 };
 
 const GreetingSection: React.FC<GreetingSectionProps> = ({ onSectionPress, activeSection }) => {
     const { me } = useAuth();
+    const { t } = useLanguage();
     const [user, setUser] = useState<MeResponse | null>(null);
     const [loading, setLoading] = useState(true);
-    const [greeting, setGreeting] = useState(getGreeting());
+    const [greetingKey, setGreetingKey] = useState(getGreetingKey());
 
     // Gọi API khi component được mount
     useEffect(() => {
@@ -52,14 +53,32 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ onSectionPress, activ
     // Update greeting every minute
     useEffect(() => {
         const interval = setInterval(() => {
-            setGreeting(getGreeting());
+            setGreetingKey(getGreetingKey());
         }, 60000); // Update every minute
 
         return () => clearInterval(interval);
     }, []);
 
-    const handleSectionPress = (section: string) => {
-        onSectionPress(section);
+    const handleSectionPress = (sectionKey: TranslationKey) => {
+        // Map key back to original section string expected by HomeScreen if needed,
+        // or HomeScreen should handle keys.
+        // For now let's map back to English or just pass what HomeScreen expects.
+        // HomeScreen expects specific strings for scrollToSection switch case.
+        // Let's assume HomeScreen uses the translated string matching? No, HomeScreen logic relies on hardcoded strings "Recent", "Discovery" etc.
+        // So we should pass the expected internal ID, but display the translated label.
+
+        // We can reconstruct the internal ID from the key or map it.
+        // Let's create a map or just switch.
+        let internalSection = 'Recent';
+        switch (sectionKey) {
+            case 'recent': internalSection = 'Recent'; break;
+            case 'discovery': internalSection = 'Discovery'; break;
+            case 'trending': internalSection = 'Trending'; break;
+            case 'top': internalSection = 'Top'; break;
+            case 'yourPlaylists': internalSection = 'Your Playlists'; break;
+            case 'madeForYou': internalSection = 'Made For You'; break;
+        }
+        onSectionPress(internalSection);
     };
 
     if (loading) {
@@ -75,7 +94,7 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ onSectionPress, activ
             {/* Phần Lời chào - luôn hiển thị */}
             <View style={styles.greetingContainer}>
                 <Text style={styles.greetingText}>
-                    {greeting}, {user ? user.username : 'Guest'}
+                    {t(greetingKey)}, {user ? user.username : t('guest')}
                 </Text>
             </View>
 
@@ -85,13 +104,25 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ onSectionPress, activ
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.sectionsContainer}
             >
-                {SECTIONS.map((section, index) => {
-                    const isActive = activeSection === section;
+                {SECTIONS_KEYS.map((sectionKey, index) => {
+                    // We need to map activeSection (internal ID) to key to check isActive
+                    // internal "Recent" -> key "recent"
+                    let internalSection = 'Recent';
+                    switch (sectionKey) {
+                        case 'recent': internalSection = 'Recent'; break;
+                        case 'discovery': internalSection = 'Discovery'; break;
+                        case 'trending': internalSection = 'Trending'; break;
+                        case 'top': internalSection = 'Top'; break;
+                        case 'yourPlaylists': internalSection = 'Your Playlists'; break;
+                        case 'madeForYou': internalSection = 'Made For You'; break;
+                    }
+
+                    const isActive = activeSection === internalSection;
                     return (
                         <TouchableOpacity
                             key={index}
                             activeOpacity={0.8}
-                            onPress={() => handleSectionPress(section)}
+                            onPress={() => handleSectionPress(sectionKey)}
                             style={[
                                 styles.chip,
                                 isActive ? { backgroundColor: COLORS.primary } : styles.chipInactive
@@ -101,7 +132,7 @@ const GreetingSection: React.FC<GreetingSectionProps> = ({ onSectionPress, activ
                                 styles.chipText,
                                 isActive ? styles.chipTextActive : styles.chipTextInactive
                             ]}>
-                                {section}
+                                {t(sectionKey)}
                             </Text>
                         </TouchableOpacity>
                     );

@@ -37,6 +37,7 @@ export interface OnboardingResponse {
 }
 
 export interface MeResponse {
+    id: number;
     username: string;
     avatar_url: string;
     is_active: boolean;

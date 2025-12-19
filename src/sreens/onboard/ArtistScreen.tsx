@@ -21,6 +21,7 @@ import { COLORS } from '../../constants/colors';
 import { FONTS } from '../../constants/typography';
 import ArtistService from '../../services/ArtistService';
 import UserService, { OnboardingStep } from '../../services/UserService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
@@ -39,6 +40,7 @@ interface ArtistResponse {
 
 const ArtistScreen = () => {
     const navigation = useNavigation();
+    const { t } = useLanguage();
     const [artists, setArtists] = useState<ArtistResponse[]>([]);
     const [selectedArtists, setSelectedArtists] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
@@ -85,11 +87,11 @@ const ArtistScreen = () => {
                 }
             } else {
                 console.error("Failed to fetch artists:", response.error);
-                Alert.alert("Lỗi", "Không thể tải danh sách nghệ sĩ.");
+                Alert.alert(t('error'), t('cannotLoadGenres')); // Re-using cannotLoadGenres or add cannotLoadArtists
             }
         } catch (error) {
             console.error("Error fetching artists:", error);
-            Alert.alert("Lỗi", "Đã xảy ra lỗi kết nối.");
+            Alert.alert(t('error'), t('connectionError'));
         } finally {
             setLoading(false);
         }
@@ -134,11 +136,11 @@ const ArtistScreen = () => {
                     routes: [{ name: 'MainTabs' }],
                 });
             } else {
-                Alert.alert("Lỗi", "Không thể lưu nghệ sĩ. Vui lòng thử lại.");
+                Alert.alert(t('error'), t('saveArtistError'));
             }
         } catch (error) {
             console.error("Error sending artists:", error);
-            Alert.alert("Lỗi", "Đã xảy ra lỗi kết nối.");
+            Alert.alert(t('error'), t('connectionError'));
         } finally {
             setSubmitting(false);
         }
@@ -196,11 +198,11 @@ const ArtistScreen = () => {
                     </TouchableOpacity>
 
                     <Text style={styles.progressText}>
-                        Step {CURRENT_STEP} / {TOTAL_STEPS}
+                        {t('step')} {CURRENT_STEP} / {TOTAL_STEPS}
                     </Text>
 
                     <TouchableOpacity onPress={handleSkip} style={styles.navButton}>
-                        <Text style={styles.skipText}>Skip</Text>
+                        <Text style={styles.skipText}>{t('skip')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -226,9 +228,9 @@ const ArtistScreen = () => {
                         },
                     ]}
                 >
-                    <Text style={styles.title}>Chọn nghệ sĩ{'\n'}bạn yêu thích</Text>
+                    <Text style={styles.title}>{t('chooseArtists')}</Text>
                     <Text style={styles.subtitle}>
-                        Để chúng tôi gợi ý nhạc phù hợp nhất
+                        {t('recommendBestMusic')}
                     </Text>
 
                     {loading ? (
@@ -270,14 +272,14 @@ const ArtistScreen = () => {
                                     <ActivityIndicator color={COLORS.white} />
                                 ) : (
                                     <>
-                                        <Text style={styles.ctaText}>Tiếp tục ({selectedArtists.length})</Text>
+                                        <Text style={styles.ctaText}>{t('continue')} ({selectedArtists.length})</Text>
                                         <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
                                     </>
                                 )}
                             </LinearGradient>
                         ) : (
                             <View style={[styles.ctaGradient, { backgroundColor: COLORS.border }]}>
-                                <Text style={[styles.ctaText, { color: COLORS.textSecondary }]}>Chọn nghệ sĩ</Text>
+                                <Text style={[styles.ctaText, { color: COLORS.textSecondary }]}>{t('selectArtists')}</Text>
                             </View>
                         )}
                     </TouchableOpacity>

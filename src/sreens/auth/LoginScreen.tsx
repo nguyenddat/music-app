@@ -20,10 +20,12 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../constants/colors';
 import { FONTS } from '../../constants/typography';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const LoginScreen = () => {
     const navigation = useNavigation();
     const { login, loading, error } = useAuth();
+    const { t } = useLanguage();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -58,7 +60,7 @@ const LoginScreen = () => {
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ email và mật khẩu');
+            Alert.alert(t('error'), t('inputEmailPassword'));
             return;
         }
 
@@ -113,16 +115,17 @@ const LoginScreen = () => {
                                 },
                             ]}
                         >
-                            <Text style={styles.title}>Chào mừng trở lại!</Text>
-                            <Text style={styles.subtitle}>Đăng nhập vào tài khoản của bạn</Text>
+                            <Text style={styles.title}>{t('welcomeBack')}</Text>
+                            <Text style={styles.subtitle}>{t('loginToAccount')}</Text>
 
                             {/* Form */}
-                            <View style={styles.form}>
+                            < View style={styles.form} >
                                 {/* Email Input */}
-                                <View style={[
-                                    styles.inputContainer,
-                                    emailFocused && styles.inputContainerFocused
-                                ]}>
+                                < View style={
+                                    [
+                                        styles.inputContainer,
+                                        emailFocused && styles.inputContainerFocused
+                                    ]} >
                                     <Ionicons
                                         name="mail-outline"
                                         size={20}
@@ -132,7 +135,7 @@ const LoginScreen = () => {
                                     <TextInput
                                         ref={emailInputRef}
                                         style={styles.input}
-                                        placeholder="Email hoặc tên đăng nhập"
+                                        placeholder={t('emailOrUsername')}
                                         placeholderTextColor={COLORS.textSecondary}
                                         selectionColor={COLORS.primary}
                                         value={email}
@@ -157,7 +160,7 @@ const LoginScreen = () => {
                                     />
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="Mật khẩu"
+                                        placeholder={t('password')}
                                         placeholderTextColor={COLORS.textSecondary}
                                         selectionColor={COLORS.primary}
                                         value={password}
@@ -181,7 +184,7 @@ const LoginScreen = () => {
 
                                 {/* Forgot Password */}
                                 <TouchableOpacity style={styles.forgotPassword}>
-                                    <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
+                                    <Text style={styles.forgotPasswordText}>{t('forgotPassword')}</Text>
                                 </TouchableOpacity>
 
                                 {/* Error message */}
@@ -215,7 +218,7 @@ const LoginScreen = () => {
                                         <ActivityIndicator color={COLORS.white} />
                                     ) : (
                                         <>
-                                            <Text style={styles.loginButtonText}>Đăng nhập</Text>
+                                            <Text style={styles.loginButtonText}>{t('login')}</Text>
                                             <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
                                         </>
                                     )}
@@ -223,16 +226,16 @@ const LoginScreen = () => {
                             </TouchableOpacity>
 
                             <View style={styles.registerRow}>
-                                <Text style={styles.registerText}>Chưa có tài khoản? </Text>
+                                <Text style={styles.registerText}>{t('noAccount')}</Text>
                                 <TouchableOpacity onPress={() => navigation.navigate('Register' as never)}>
-                                    <Text style={styles.registerLink}>Đăng ký ngay</Text>
+                                    <Text style={styles.registerLink}>{t('registerNow')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </View>
+                </KeyboardAvoidingView >
+            </SafeAreaView >
+        </View >
     );
 };
 
@@ -347,15 +350,16 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         overflow: 'hidden',
         marginBottom: 24,
+        height: 56,
     },
     loginButtonDisabled: {
         opacity: 0.6,
     },
     loginButtonGradient: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 18,
         gap: 8,
     },
     loginButtonText: {
