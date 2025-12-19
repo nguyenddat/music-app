@@ -28,7 +28,9 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-audio",
+      "expo-video"
     ],
     "extra": {
       "apiBaseUrl": "http://10.0.2.2:8000/api"

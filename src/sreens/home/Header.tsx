@@ -36,7 +36,20 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                     >
                         <Ionicons
                             name="search-outline"
-                            size={22}
+                            size={20}
+                            color="#FFFFFF"
+                        />
+                    </TouchableOpacity>
+
+                    {/* Upload/Match Button */}
+                    <TouchableOpacity
+                        style={styles.iconButton}
+                        activeOpacity={0.7}
+                        onPress={() => navigation.navigate('AIFind')}
+                    >
+                        <Ionicons
+                            name="cloud-upload-outline"
+                            size={20}
                             color="#FFFFFF"
                         />
                     </TouchableOpacity>
@@ -45,11 +58,11 @@ const Header: React.FC<HeaderProps> = ({ navigation }) => {
                     <TouchableOpacity
                         style={styles.iconButton}
                         activeOpacity={0.7}
-                        onPress={() => console.log('Favorite pressed')}
+                        onPress={() => navigation.navigate('Playlists')}
                     >
                         <Ionicons
                             name="heart-outline"
-                            size={22}
+                            size={20}
                             color="#FFFFFF"
                         />
                     </TouchableOpacity>
@@ -72,9 +85,9 @@ const styles = StyleSheet.create({
     },
     // Avatar styles
     avatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         borderWidth: 2,
         borderColor: COLORS.surface,
     },
@@ -86,11 +99,11 @@ const styles = StyleSheet.create({
     },
     // Circular Icon Button styles
     iconButton: {
-        width: 44,
-        height: 44,
+        width: 36,
+        height: 36,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 22,
+        borderRadius: 18,
         backgroundColor: 'rgba(255, 255, 255, 0.08)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',

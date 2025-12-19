@@ -160,7 +160,6 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
                         value={searchText}
                         onChangeText={setSearchText}
                         onFocus={() => navigation.navigate('MainFind')}
-                        autoFocus
                     />
                     {searchText.length > 0 && (
                         <TouchableOpacity onPress={handleClear} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>

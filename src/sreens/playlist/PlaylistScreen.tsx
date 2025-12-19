@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { FONTS } from '../../constants/typography';
+import { useMusicPlayer } from '../../contexts/MusicPlayerContext';
 
 const { width } = Dimensions.get('window');
 
@@ -24,21 +25,48 @@ export interface Song {
     artist: string;
     cover: string;
     isLiked?: boolean;
+    duration?: number;
 }
 
 const PlaylistScreen = ({ route, navigation }: any) => {
-    // Lấy dữ liệu từ params (hoặc dùng props tùy cách bạn điều hướng)
     const {
         playlistTitle = "Alex + Sam",
         playlistCover,
         songs,
         description = "A blend of music for Sam and Alex. Updates daily.",
-        dominantColor = '#2a4f38' // Màu mặc định nếu không có
+        dominantColor = '#2a4f38'
     } = route.params || {};
 
+    const { currentSong, isPlaying, playSong, expandPlayer } = useMusicPlayer();
+
+    // Convert Song to MusicResponse format for context
+    const convertToMusicResponse = (song: Song, index: number) => ({
+        id: parseInt(song.id),
+        name: song.title,
+        artists: [song.artist],
+        file_path: '',
+        avatar_url: song.cover,
+        created_at: new Date().toISOString(),
+        duration: song.duration || null,
+    });
+
+    // Handle song press
+    const handleSongPress = async (song: Song, index: number) => {
+        const selectedSong = convertToMusicResponse(song, index);
+        const playlist = songs.map((s: Song, i: number) => convertToMusicResponse(s, i));
+
+        // Play song and expand player
+        await playSong(selectedSong, playlist, index, dominantColor);
+        expandPlayer();
+    };
+
     // Render từng bài hát (Row Item)
-    const renderSongItem = ({ item }: { item: Song }) => (
-        <TouchableOpacity style={styles.songItem} activeOpacity={0.7}>
+    const renderSongItem = ({ item, index }: { item: Song; index: number }) => (
+        <TouchableOpacity
+            style={styles.songItem}
+            activeOpacity={0.7}
+            onPress={() => handleSongPress(item, index)}
+        >
             <Image source={{ uri: item.cover }} style={styles.songCover} />
             <View style={styles.songInfo}>
                 <Text style={styles.songTitle} numberOfLines={1}>{item.title}</Text>
@@ -53,10 +81,8 @@ const PlaylistScreen = ({ route, navigation }: any) => {
     // Header của FlatList (Phần ảnh to, tên playlist và các nút control)
     const renderHeader = () => (
         <View style={styles.headerContainer}>
-            {/* Search Bar giả lập (Back button) */}
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color="#FFF" />
-            </TouchableOpacity>
+            {/* Search Bar giả lập (Back button moved to global) */}
+            <View style={{ height: 10 }} />
 
             {/* Playlist Art */}
             <View style={styles.artContainer}>
@@ -101,7 +127,11 @@ const PlaylistScreen = ({ route, navigation }: any) => {
                         <Ionicons name="shuffle" size={28} color="#1DB954" />
                     </TouchableOpacity>
                     {/* Nút Play Xanh Đặc Trưng */}
-                    <TouchableOpacity style={styles.playButton} activeOpacity={0.8}>
+                    <TouchableOpacity
+                        style={styles.playButton}
+                        activeOpacity={0.8}
+                        onPress={() => songs && songs.length > 0 && handleSongPress(songs[0], 0)}
+                    >
                         <Ionicons name="play" size={28} color="#000" style={{ marginLeft: 4 }} />
                     </TouchableOpacity>
                 </View>
@@ -131,20 +161,14 @@ const PlaylistScreen = ({ route, navigation }: any) => {
                 />
             </SafeAreaView>
 
-            {/* Mini Player giả lập (Bottom Sheet) */}
-            <View style={styles.miniPlayer}>
-                <View style={styles.miniPlayerContent}>
-                    <Image source={{ uri: songs[0]?.cover }} style={styles.miniCover} />
-                    <View style={{ flex: 1, marginLeft: 10 }}>
-                        <Text style={styles.miniTitle}>{songs[0]?.title || "Radio"}</Text>
-                        <Text style={styles.miniArtist}>{songs[0]?.artist || "Unknown"}</Text>
-                    </View>
-                    <Ionicons name="bluetooth-outline" size={20} color="#1DB954" style={{ marginRight: 15 }} />
-                    <TouchableOpacity><Ionicons name="play" size={28} color="#FFF" /></TouchableOpacity>
-                </View>
-                {/* Progress bar giả */}
-                <View style={styles.progressBar} />
-            </View>
+            {/* Floating Back Button */}
+            <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+                <Ionicons name="arrow-back" size={24} color="#FFF" />
+            </TouchableOpacity>
         </View>
     );
 };
@@ -158,7 +182,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     listContent: {
-        paddingBottom: 80, // Chừa chỗ cho mini player
+        paddingBottom: 150,  // Increased to accommodate mini player (70px) + safe spacing
     },
     // --- Header Styles ---
     headerContainer: {
@@ -166,10 +190,16 @@ const styles = StyleSheet.create({
         paddingTop: 10,
     },
     backButton: {
-        marginBottom: 20,
-        width: 40,
-        height: 40,
+        position: 'absolute',
+        top: 50, // Fixed top position
+        left: 20,
+        width: 44,
+        height: 44,
         justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 999, // High z-index to ensure clickability
+        backgroundColor: 'rgba(0,0,0,0.3)', // Optional: slight background for visibility if over art
+        borderRadius: 22,
     },
     artContainer: {
         alignItems: 'center',
@@ -277,48 +307,6 @@ const styles = StyleSheet.create({
     },
     moreBtn: {
         padding: 8,
-    },
-
-    // --- Mini Player Styles (Optional) ---
-    miniPlayer: {
-        position: 'absolute',
-        bottom: 10, // Cách đáy một chút giống ảnh
-        left: 8,
-        right: 8,
-        backgroundColor: '#382522', // Màu nâu đỏ giống trong ảnh (dynamic theo bài hát)
-        borderRadius: 8,
-        padding: 8,
-        paddingBottom: 0, // cho progress bar nằm sát đáy
-        overflow: 'hidden',
-    },
-    miniPlayerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-        paddingHorizontal: 4,
-    },
-    miniCover: {
-        width: 38,
-        height: 38,
-        borderRadius: 4,
-        backgroundColor: '#555',
-    },
-    miniTitle: {
-        color: '#FFF',
-        fontFamily: FONTS.GilroyBold,
-        fontSize: 13,
-    },
-    miniArtist: {
-        color: '#BBB',
-        fontFamily: FONTS.GilroyMedium,
-        fontSize: 12,
-    },
-    progressBar: {
-        height: 2,
-        backgroundColor: '#FFF',
-        width: '40%', // Giả lập đang chạy
-        alignSelf: 'flex-start',
-        marginBottom: 0,
     },
 });
 

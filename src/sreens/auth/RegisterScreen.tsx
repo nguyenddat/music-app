@@ -91,7 +91,10 @@ const RegisterScreen = () => {
 
         if (result) {
             if (result.is_onboarded) {
-                navigation.navigate('MainTabs' as never);
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'MainTabs' }],
+                });
             } else {
                 navigation.navigate('Welcome' as never);
             }

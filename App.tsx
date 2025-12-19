@@ -2,6 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import UserService from './src/services/UserService';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { View, ActivityIndicator } from 'react-native';
@@ -12,12 +14,15 @@ import GenreScreen from './src/sreens/onboard/GenreScreen';
 import ArtistScreen from './src/sreens/onboard/ArtistScreen';
 import FindScreen from './src/sreens/find/FindScreen';
 import MainFindScreen from './src/sreens/find/MainFindScreen';
+import AIFindScreen from './src/sreens/find/AIFindScreen';
 
 import LoginScreen from './src/sreens/auth/LoginScreen';
 import RegisterScreen from './src/sreens/auth/RegisterScreen';
 import PlaylistScreen from './src/sreens/playlist/PlaylistScreen';
 import { COLORS } from './src/constants/colors';
-import CustomBottomBar from './src/components/CustomBottomBar';
+
+import { MusicPlayerProvider } from './src/contexts/MusicPlayerContext';
+import UnifiedPlayer from './src/components/UnifiedPlayer';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -30,7 +35,7 @@ const SettingsScreen = () => <View style={{ flex: 1, backgroundColor: '#000' }} 
 function MainTabs() {
   return (
     <Tab.Navigator
-      tabBar={(props) => <CustomBottomBar {...props} />}
+      tabBar={() => null}
       screenOptions={{
         headerShown: false,
       }}
@@ -52,8 +57,36 @@ export default function App() {
     'Gilroy-Bold': require('./assets/fonts/SVN-Gilroy-Bold.otf'),
   });
 
-  // Show loading screen while fonts are loading
-  if (!fontsLoaded) {
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [initialRoute, setInitialRoute] = React.useState("Auth");
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = await AsyncStorage.getItem('access_token');
+        if (token) {
+          // Validate token by fetching user profile
+          const result = await UserService.me();
+          if (result.success) {
+            setInitialRoute("MainTabs");
+          } else {
+            // Token invalid or expired
+            await AsyncStorage.removeItem('access_token');
+            await AsyncStorage.removeItem('refresh_token');
+          }
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Show loading screen while fonts are loading or auth is being checked
+  if (!fontsLoaded || isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -62,20 +95,27 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Auth" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="Genre" component={GenreScreen} />
-        <Stack.Screen name="Artist" component={ArtistScreen} />
-        <Stack.Screen name="Auth" component={AuthScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-        <Stack.Screen name="MainFind" component={MainFindScreen} />
-        <Stack.Screen name="Playlist" component={PlaylistScreen} />
-      </Stack.Navigator>
-      <StatusBar style="auto" />
-    </NavigationContainer>
+    <MusicPlayerProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="Genre" component={GenreScreen} />
+          <Stack.Screen name="Artist" component={ArtistScreen} />
+          <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="MainFind" component={MainFindScreen} />
+          <Stack.Screen name="AIFind" component={AIFindScreen} />
+          <Stack.Screen name="Playlist" component={PlaylistScreen} />
+        </Stack.Navigator>
+
+        {/* Unified Player - renders above all screens */}
+        <UnifiedPlayer />
+
+        <StatusBar style="auto" />
+      </NavigationContainer>
+    </MusicPlayerProvider>
   );
 }
 
