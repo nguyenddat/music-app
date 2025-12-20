@@ -75,14 +75,14 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     title: {
-        color: COLORS.textLight,
+        color: COLORS.text,
         fontSize: 18,
         fontWeight: '700',
         marginBottom: 4,
         letterSpacing: 0.5,
     },
     genre: {
-        color: COLORS.secondaryLight,
+        color: COLORS.textSecondary,
         fontSize: 13,
         fontWeight: '500',
     },

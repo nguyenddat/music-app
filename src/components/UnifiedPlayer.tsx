@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { BlurView } from 'expo-blur';
 import {
     View,
     Text,
@@ -9,8 +10,10 @@ import {
     Animated,
     ActivityIndicator,
     StatusBar,
+    Alert,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +22,7 @@ import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import { COLORS } from '../constants/colors';
 import { FONTS } from '../constants/typography';
 import MusicService from '../services/MusicService';
+import PlaylistService from '../services/PlaylistService';
 
 const { width, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const ALBUM_ART_SIZE = width * 0.8;
@@ -36,17 +40,21 @@ const UnifiedPlayer = () => {
         repeatMode,
         dominantColor,
         isPlayerExpanded,
+        volume,
+        isMuted,
         togglePlayPause,
         skipNext,
         skipPrevious,
         toggleShuffle,
         toggleRepeat,
+        changeVolume,
+        toggleMute,
         minimizePlayer,
         expandPlayer,
         seekTo,
     } = useMusicPlayer();
 
-    const [isLiked, setIsLiked] = React.useState(false);
+    const [isLiked, setIsLiked] = useState(false);
     const [isSeeking, setIsSeeking] = useState(false);
     const [seekValue, setSeekValue] = useState(0);
 
@@ -103,6 +111,7 @@ const UnifiedPlayer = () => {
         }
     }, [isPlayerExpanded]);
 
+    // Log history only once when song changes
     useEffect(() => {
         if (currentSong?.id) {
             MusicService.createHistory({ song_id: currentSong.id })
@@ -111,19 +120,9 @@ const UnifiedPlayer = () => {
                         console.log('Logged history for song:', currentSong.id);
                     }
                 })
-                .catch(console.error);
-        }
-    }, [currentSong?.id]);
-
-    useEffect(() => {
-        if (currentSong?.id) {
-            MusicService.createHistory({ song_id: currentSong.id })
-                .then((res) => {
-                    if (res.success) {
-                        console.log('Logged history for song:', currentSong.id);
-                    }
-                })
-                .catch(console.error);
+                .catch((error) => {
+                    console.error('Failed to log history:', error);
+                });
         }
     }, [currentSong?.id]);
 
@@ -134,8 +133,118 @@ const UnifiedPlayer = () => {
         }).start();
     }, [isPlaying]);
 
-    const toggleLike = () => {
-        setIsLiked(!isLiked);
+    // Load liked status when song changes
+    useEffect(() => {
+        const loadLikedStatus = async () => {
+            if (!currentSong) {
+                setIsLiked(false);
+                return;
+            }
+
+            try {
+                const likedSongsJson = await AsyncStorage.getItem('liked_songs');
+                if (likedSongsJson) {
+                    const likedSongs: number[] = JSON.parse(likedSongsJson);
+                    setIsLiked(likedSongs.includes(currentSong.id));
+                } else {
+                    setIsLiked(false);
+                }
+            } catch (error) {
+                console.error('[UnifiedPlayer] Failed to load liked status:', error);
+                setIsLiked(false);
+            }
+        };
+
+        loadLikedStatus();
+    }, [currentSong?.id]);
+
+    const toggleLike = async () => {
+        if (!currentSong) return;
+
+        try {
+            // Load current liked songs
+            const likedSongsJson = await AsyncStorage.getItem('liked_songs');
+            const likedSongs: number[] = likedSongsJson ? JSON.parse(likedSongsJson) : [];
+
+            if (isLiked) {
+                // Unlike - Show confirmation
+                Alert.alert(
+                    'Bỏ yêu thích',
+                    'Bạn có chắc muốn bỏ bài hát này khỏi danh sách yêu thích?',
+                    [
+                        {
+                            text: 'Hủy',
+                            style: 'cancel'
+                        },
+                        {
+                            text: 'Bỏ yêu thích',
+                            style: 'destructive',
+                            onPress: async () => {
+                                // Remove from local storage
+                                const updatedLiked = likedSongs.filter(id => id !== currentSong.id);
+                                await AsyncStorage.setItem('liked_songs', JSON.stringify(updatedLiked));
+                                setIsLiked(false);
+                                console.log('[UnifiedPlayer] Song unliked (local only):', currentSong.id);
+                            }
+                        }
+                    ]
+                );
+            } else {
+                // Like - Add to favorites playlist
+                setIsLiked(true); // Optimistic update
+
+                // Get or create favorites playlist
+                const userPlaylists = await PlaylistService.getUserPlaylists();
+
+                console.log('[UnifiedPlayer] User playlists:', userPlaylists.data?.map(p => ({ id: p.id, name: p.name, type: p.playlist_type })));
+
+                // Try to find existing "Yêu thích" playlist by name
+                let favoritesPlaylist = userPlaylists.data?.find(p => p.name === 'Yêu thích');
+
+                console.log('[UnifiedPlayer] Found favorites playlist:', favoritesPlaylist ? favoritesPlaylist.id : 'NOT FOUND');
+
+                if (!favoritesPlaylist) {
+                    // Create favorites playlist
+                    console.log('[UnifiedPlayer] Creating favorites playlist...');
+
+                    const createResult = await PlaylistService.createUserPlaylist({
+                        name: 'Yêu thích',
+                        playlist_type: 'personal', // Use 'personal' - 'favorite' is not valid
+                        is_public: false,
+                    });
+
+                    console.log('[UnifiedPlayer] Create result:', createResult);
+
+                    if (createResult.success && createResult.data) {
+                        favoritesPlaylist = createResult.data;
+                        console.log('[UnifiedPlayer] Favorites playlist created:', favoritesPlaylist.id);
+                    } else {
+                        console.error('[UnifiedPlayer] Failed to create playlist:', createResult.error);
+                        throw new Error(`Failed to create favorites playlist: ${JSON.stringify(createResult.error)}`);
+                    }
+                }
+
+                // Add song to playlist
+                const addResult = await MusicService.addToPlaylist(favoritesPlaylist.id, {
+                    song_id: currentSong.id
+                });
+
+                if (addResult.success) {
+                    // Update local storage
+                    const updatedLiked = [...likedSongs, currentSong.id];
+                    await AsyncStorage.setItem('liked_songs', JSON.stringify(updatedLiked));
+                    console.log('[UnifiedPlayer] Song liked:', currentSong.id);
+                } else {
+                    // Rollback on failure
+                    setIsLiked(false);
+                    Alert.alert('Lỗi', 'Không thể thêm bài hát vào danh sách yêu thích');
+                }
+            }
+        } catch (error) {
+            console.error('[UnifiedPlayer] Failed to toggle like:', error);
+            setIsLiked(!isLiked); // Rollback
+            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi xử lý yêu thích');
+        }
     };
 
     const formatTime = (seconds: number): string => {
@@ -147,6 +256,9 @@ const UnifiedPlayer = () => {
     if (!currentSong || shouldHidePlayer) {
         return null;
     }
+
+    // Debug logging
+    console.log('[UnifiedPlayer] Rendering with song:', currentSong.name, 'color:', dominantColor);
 
     return (
         <View
@@ -173,7 +285,7 @@ const UnifiedPlayer = () => {
                     style={[
                         styles.miniPlayerWrapper,
                         {
-                            backgroundColor: dominantColor,
+                            backgroundColor: dominantColor || COLORS.surface,
                         }
                     ]}
                     onPress={expandPlayer}
@@ -181,6 +293,7 @@ const UnifiedPlayer = () => {
                 >
                     <View style={styles.miniPlayerContent}>
                         <Image
+                            key={`mini-${currentSong.id}`}
                             source={{ uri: currentSong.avatar_url }}
                             style={styles.miniAlbumArt}
                             resizeMode="cover"
@@ -213,7 +326,7 @@ const UnifiedPlayer = () => {
                     {/* Progress bar */}
                     <View style={[
                         styles.miniProgressBar,
-                        { width: `${(currentTime / duration) * 100}%` }
+                        { width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }
                     ]} />
                 </TouchableOpacity>
             </Animated.View>
@@ -228,10 +341,28 @@ const UnifiedPlayer = () => {
                 ]}
                 pointerEvents={isPlayerExpanded ? 'auto' : 'none'}
             >
-                <LinearGradient
-                    colors={[dominantColor, COLORS.background, COLORS.black]}
-                    locations={[0, 0.5, 1]}
+                {/* Background Image with Blur */}
+                <Image
+                    key={`bg-${currentSong?.id}`}
+                    source={{ uri: currentSong?.avatar_url }}
                     style={StyleSheet.absoluteFillObject}
+                    blurRadius={50}
+                />
+                <BlurView
+                    intensity={50}
+                    tint="dark"
+                    style={StyleSheet.absoluteFillObject}
+                />
+                <LinearGradient
+                    key={`gradient-${currentSong.id}-${dominantColor}`}
+                    colors={[
+                        (dominantColor || COLORS.background) + '40',
+                        (dominantColor || COLORS.background) + '80',
+                        '#121212'
+                    ]}
+                    style={StyleSheet.absoluteFillObject}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
                 />
 
                 <SafeAreaView style={styles.safeArea}>
@@ -263,6 +394,7 @@ const UnifiedPlayer = () => {
                             ]}
                         >
                             <Image
+                                key={`art-${currentSong.id}`}
                                 source={{ uri: currentSong.avatar_url }}
                                 style={styles.albumArt}
                                 resizeMode="cover"
@@ -294,7 +426,7 @@ const UnifiedPlayer = () => {
                         <Slider
                             style={styles.progressBar}
                             minimumValue={0}
-                            maximumValue={duration}
+                            maximumValue={Math.max(duration, 1)} // Avoid division by zero
                             value={isSeeking ? seekValue : currentTime}
                             minimumTrackTintColor={COLORS.primary}
                             maximumTrackTintColor={COLORS.surface}
@@ -307,14 +439,48 @@ const UnifiedPlayer = () => {
                                 setSeekValue(value);
                             }}
                             onSlidingComplete={async (value) => {
-                                await seekTo(value);
-                                setIsSeeking(false);
+                                try {
+                                    await seekTo(value);
+                                } catch (error) {
+                                    console.error('Seek failed:', error);
+                                } finally {
+                                    setIsSeeking(false);
+                                }
                             }}
                         />
                         <View style={styles.timeContainer}>
-                            <Text style={styles.timeText}>{formatTime(currentTime)}</Text>
+                            <Text style={styles.timeText}>{formatTime(isSeeking ? seekValue : currentTime)}</Text>
                             <Text style={styles.timeText}>{formatTime(duration)}</Text>
                         </View>
+                    </View>
+
+                    {/* Volume Control */}
+                    <View style={styles.volumeContainer}>
+                        <TouchableOpacity onPress={toggleMute} style={styles.volumeButton}>
+                            <Ionicons
+                                name={isMuted ? 'volume-mute' : volume > 0.5 ? 'volume-high' : volume > 0 ? 'volume-medium' : 'volume-mute'}
+                                size={24}
+                                color={COLORS.textSecondary}
+                            />
+                        </TouchableOpacity>
+
+                        <Slider
+                            style={styles.volumeSlider}
+                            minimumValue={0}
+                            maximumValue={1}
+                            value={isMuted ? 0 : volume}
+                            minimumTrackTintColor={COLORS.primary}
+                            maximumTrackTintColor={COLORS.surface}
+                            thumbTintColor={COLORS.primary}
+                            onValueChange={(value) => {
+                                if (isMuted && value > 0) {
+                                    toggleMute(); // Unmute if user moves slider
+                                }
+                                changeVolume(value);
+                            }}
+                        />
+
+                        <Text style={styles.volumeText}>{Math.round((isMuted ? 0 : volume) * 100)}%</Text>
                     </View>
 
                     {/* Controls */}
@@ -323,7 +489,7 @@ const UnifiedPlayer = () => {
                             <TouchableOpacity onPress={toggleShuffle} style={styles.controlButton}>
                                 <Ionicons
                                     name="shuffle"
-                                    size={26}
+                                    size={40}
                                     color={isShuffle ? COLORS.primary : COLORS.textSecondary}
                                 />
                             </TouchableOpacity>
@@ -331,8 +497,10 @@ const UnifiedPlayer = () => {
                             <TouchableOpacity
                                 onPress={skipPrevious}
                                 style={styles.controlButton}
+                                disabled={isLoading}
+                                activeOpacity={0.7}
                             >
-                                <Ionicons name="play-skip-back" size={32} color={COLORS.text} />
+                                <Ionicons name="play-skip-back" size={46} color={COLORS.text} />
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -345,7 +513,7 @@ const UnifiedPlayer = () => {
                                 ) : (
                                     <Ionicons
                                         name={isPlaying ? 'pause' : 'play'}
-                                        size={36}
+                                        size={50}
                                         color={COLORS.text}
                                     />
                                 )}
@@ -354,22 +522,25 @@ const UnifiedPlayer = () => {
                             <TouchableOpacity
                                 onPress={skipNext}
                                 style={styles.controlButton}
+                                disabled={isLoading}
+                                activeOpacity={0.7}
                             >
-                                <Ionicons name="play-skip-forward" size={32} color={COLORS.text} />
+                                <Ionicons name="play-skip-forward" size={46} color={COLORS.text} />
                             </TouchableOpacity>
 
                             <TouchableOpacity onPress={toggleRepeat} style={styles.controlButton}>
                                 <Ionicons
-                                    name={
-                                        repeatMode === 'one'
-                                            ? 'repeat-outline'
-                                            : 'repeat'
-                                    }
-                                    size={26}
+                                    name="repeat"
+                                    size={40}
                                     color={
                                         repeatMode !== 'off' ? COLORS.primary : COLORS.textSecondary
                                     }
                                 />
+                                {repeatMode === 'one' && (
+                                    <View style={styles.repeatOneBadge}>
+                                        <Text style={styles.repeatOneText}>1</Text>
+                                    </View>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -571,6 +742,49 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF',
         alignSelf: 'flex-start',
         marginBottom: 0,
+    },
+    repeatOneBadge: {
+        position: 'absolute',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        backgroundColor: COLORS.background,
+        // Adjusted position to not cover the icon
+        top: 18,
+        right: 16,
+    },
+    repeatOneText: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+        textAlign: 'center',
+    },
+    volumeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        marginTop: 10,
+        marginBottom: 10,
+    },
+    volumeButton: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    volumeSlider: {
+        flex: 1,
+        height: 40,
+        marginHorizontal: 10,
+    },
+    volumeText: {
+        fontFamily: FONTS.GilroyMedium,
+        fontSize: 12,
+        color: COLORS.textSecondary,
+        width: 40,
+        textAlign: 'right',
     },
 });
 

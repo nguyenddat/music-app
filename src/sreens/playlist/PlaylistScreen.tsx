@@ -25,7 +25,7 @@ const { width } = Dimensions.get('window');
 
 // 1. Định nghĩa Type cho đầu vào
 export interface Song {
-    id: string;
+    id: number; // Changed from string to number for consistency
     title: string;
     artist: string;
     cover: string;
@@ -125,7 +125,7 @@ const PlaylistScreen = ({ route, navigation }: any) => {
 
         try {
             const res = await MusicService.addToPlaylist(targetPlaylistId, {
-                song_id: parseInt(selectedSongToAdd.id)
+                song_id: selectedSongToAdd.id
             });
 
             if (res.success) {
@@ -173,7 +173,7 @@ const PlaylistScreen = ({ route, navigation }: any) => {
 
     // Convert Song to MusicResponse format for context
     const convertToMusicResponse = (song: Song, index: number) => ({
-        id: parseInt(song.id),
+        id: typeof song.id === 'number' ? song.id : parseInt(song.id as any),
         name: song.title,
         artists: [song.artist],
         file_path: '',
@@ -315,7 +315,7 @@ const PlaylistScreen = ({ route, navigation }: any) => {
             <SafeAreaView style={styles.safeArea}>
                 <FlatList
                     data={songs}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.id.toString()}
                     renderItem={renderSongItem}
                     ListHeaderComponent={renderHeader}
                     contentContainerStyle={styles.listContent}

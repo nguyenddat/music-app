@@ -12,7 +12,7 @@ const GAP = 12;
 const ITEM_WIDTH = (width - (PADDING_HORIZONTAL * 2) - GAP) / 2;
 
 export interface AlbumItem {
-    id: string;
+    id: number; // Changed from string to number
     title: string;
     image: string;
 }

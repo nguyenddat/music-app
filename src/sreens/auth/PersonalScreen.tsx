@@ -79,7 +79,7 @@ const PersonalScreen = () => {
             const likedRes = await PlaylistService.getLikedPlaylists();
             if (likedRes.success && likedRes.data) {
                 const mappedLiked = likedRes.data.map(p => ({
-                    id: p.playlist.id.toString(),
+                    id: p.playlist.id,
                     title: p.playlist.name,
                     image: p.playlist.avatar_url || 'https://via.placeholder.com/150'
                 }));
@@ -90,7 +90,7 @@ const PersonalScreen = () => {
             const userRes = await PlaylistService.getUserPlaylists();
             if (userRes.success && userRes.data) {
                 const mappedUser = userRes.data.map(p => ({
-                    id: p.id.toString(),
+                    id: p.id,
                     title: p.name,
                     image: p.avatar_url || 'https://via.placeholder.com/150'
                 }));
@@ -145,7 +145,7 @@ const PersonalScreen = () => {
 
             if (musicResponse.success) {
                 const mappedSongs = musicResponse.data.map((m: MusicResponse) => ({
-                    id: m.id.toString(),
+                    id: m.id,
                     title: m.name,
                     artist: Array.isArray(m.artists) && m.artists.length > 0 ? m.artists.join(', ') : 'Unknown Artist',
                     cover: m.avatar_url || 'https://via.placeholder.com/150',
@@ -302,7 +302,7 @@ const PersonalScreen = () => {
                     }
                     onPressAlbum={(item) => {
                         const playlistData: PlayListResponse = {
-                            id: parseInt(item.id),
+                            id: item.id,
                             name: item.title,
                             avatar_url: item.image,
                             user_id: null,
@@ -324,7 +324,7 @@ const PersonalScreen = () => {
                             // Need to reconstruct PlayListResponse structure for handlePlaylistPress
                             // Or handle navigation directly
                             const playlistData: PlayListResponse = {
-                                id: parseInt(item.id),
+                                id: item.id,
                                 name: item.title,
                                 avatar_url: item.image,
                                 user_id: null, // Unknown context

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import { DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_BASE_URL } from '../config/env.config';
@@ -38,6 +39,8 @@ api.interceptors.response.use(
     async (error: AxiosError) => {
         if (error.response?.status === 401) {
             await AsyncStorage.removeItem('access_token');
+            // Emit event for UI to handle (e.g., navigate to Login)
+            DeviceEventEmitter.emit('auth_session_expired');
         }
         return Promise.reject(error);
     }

@@ -21,7 +21,7 @@ const { width } = Dimensions.get('window');
 const ALBUM_ART_SIZE = width * 0.8;
 
 const PlayScreen = ({ navigation, route }: any) => {
-    const { song, playlist = [], dominantColor = COLORS.accent } = route.params || {};
+    const { song, playlist = [] } = route.params || {};
     const {
         currentSong,
         isPlaying,
@@ -30,6 +30,7 @@ const PlayScreen = ({ navigation, route }: any) => {
         duration,
         isShuffle,
         repeatMode,
+        dominantColor,
         playSong,
         togglePlayPause,
         skipNext,
@@ -48,7 +49,7 @@ const PlayScreen = ({ navigation, route }: any) => {
     useEffect(() => {
         if (song && (!currentSong || currentSong.id !== song.id)) {
             const songIndex = playlist.findIndex((s: any) => s.id === song.id);
-            playSong(song, playlist, songIndex >= 0 ? songIndex : 0, dominantColor);
+            playSong(song, playlist, songIndex >= 0 ? songIndex : 0);
         }
     }, [song?.id]);
 
@@ -80,10 +81,17 @@ const PlayScreen = ({ navigation, route }: any) => {
         return null;
     }
 
+    // Log để debug
+    console.log('[PlayScreen] Current color:', dominantColor, 'Song:', currentSong.name);
 
     return (
         <LinearGradient
-            colors={[dominantColor, COLORS.background, COLORS.black]}
+            key={`gradient-${currentSong.id}-${dominantColor}`} // Force re-render khi đổi bài hoặc màu
+            colors={[
+                dominantColor || COLORS.background, // Nếu không có màu album thì dùng nền đen
+                COLORS.background,
+                COLORS.black
+            ]}
             locations={[0, 0.5, 1]}
             style={styles.container}
         >
@@ -118,6 +126,7 @@ const PlayScreen = ({ navigation, route }: any) => {
                         ]}
                     >
                         <Image
+                            key={`artwork-${currentSong?.id}`}
                             source={{ uri: currentSong.avatar_url }}
                             style={styles.albumArt}
                             resizeMode="cover"
@@ -162,7 +171,7 @@ const PlayScreen = ({ navigation, route }: any) => {
                             setSeekValue(value);
                         }}
                         onSlidingComplete={async (value) => {
-                            await useMusicPlayer().seekTo(value);
+                            await seekTo(value);
                             setIsSeeking(false);
                         }}
                     />
@@ -187,6 +196,8 @@ const PlayScreen = ({ navigation, route }: any) => {
                         <TouchableOpacity
                             onPress={skipPrevious}
                             style={styles.controlButton}
+                            disabled={isLoading}
+                            activeOpacity={0.7}
                         >
                             <Ionicons name="play-skip-back" size={32} color={COLORS.text} />
                         </TouchableOpacity>
@@ -210,6 +221,8 @@ const PlayScreen = ({ navigation, route }: any) => {
                         <TouchableOpacity
                             onPress={skipNext}
                             style={styles.controlButton}
+                            disabled={isLoading}
+                            activeOpacity={0.7}
                         >
                             <Ionicons name="play-skip-forward" size={32} color={COLORS.text} />
                         </TouchableOpacity>

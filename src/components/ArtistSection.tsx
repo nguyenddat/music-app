@@ -6,7 +6,7 @@ import { COLORS } from '../constants/colors';
 import { FONTS } from '../constants/typography';
 
 export interface ArtistItem {
-    id: string;
+    id: number; // Changed from string to number
     name: string;
     avatar_url: string;
 }

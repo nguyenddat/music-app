@@ -68,7 +68,7 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
 
             if (result.success && result.data) {
                 const songs = result.data.map((music: MusicResponse) => ({
-                    id: music.id.toString(),
+                    id: music.id, // Keep as number
                     title: music.name,
                     artist: music.artists?.join(', ') || 'Various Artists',
                     cover: music.avatar_url,
@@ -88,7 +88,7 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
 
             if (result.success && result.data) {
                 const songs = result.data.map((music: MusicResponse) => ({
-                    id: music.id.toString(),
+                    id: music.id,
                     title: music.name,
                     artist: music.artists?.join(', ') || 'Unknown Artist',
                     cover: music.avatar_url,
@@ -108,7 +108,7 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
 
             if (result.success && result.data) {
                 const songs = result.data.map((music: MusicResponse) => ({
-                    id: music.id.toString(),
+                    id: music.id,
                     title: music.name,
                     artist: music.artists?.join(', ') || 'Various Artists',
                     cover: music.avatar_url,
@@ -128,7 +128,7 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
 
             if (result.success && result.data) {
                 const songs = result.data.map((music: MusicResponse) => ({
-                    id: music.id.toString(),
+                    id: music.id,
                     title: music.name,
                     artist: music.artists?.join(', ') || 'Various Artists',
                     cover: music.avatar_url,
@@ -148,7 +148,7 @@ const DiscoverySection: React.FC<DiscoverySectionProps> = ({ navigation }) => {
 
             if (result.success && result.data) {
                 const songs = result.data.map((music: MusicResponse) => ({
-                    id: music.id.toString(),
+                    id: music.id,
                     title: music.name,
                     artist: music.artists?.join(', ') || 'Various Artists',
                     cover: music.avatar_url,

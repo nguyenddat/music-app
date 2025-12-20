@@ -85,7 +85,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
     // Convert PlayListResponse to AlbumItem
     const convertToAlbumItems = (playlists: PlayListResponse[]): AlbumItem[] => {
         return playlists.map(playlist => ({
-            id: playlist.id.toString(),
+            id: playlist.id, // Keep as number
             title: playlist.name,
             image: playlist.avatar_url || 'https://via.placeholder.com/150'
         }));
@@ -94,7 +94,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
     // Convert PlayListResponse to PlaylistItem
     const convertToPlaylistItems = (playlists: PlayListResponse[]): PlaylistItem[] => {
         return playlists.map(playlist => ({
-            id: playlist.id.toString(),
+            id: playlist.id, // Keep as number
             title: playlist.name,
             image: playlist.avatar_url || 'https://via.placeholder.com/150'
         }));
@@ -102,7 +102,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
 
     const convertHistoryToPlaylistItems = (historyItems: PlaylistHistoryItem[]): PlaylistItem[] => {
         return historyItems.map(item => ({
-            id: item.playlist.id.toString(),
+            id: item.playlist.id, // Keep as number
             title: item.playlist.name,
             image: item.playlist.avatar_url || 'https://via.placeholder.com/150'
         }));
@@ -111,7 +111,7 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
     // Convert ArtistResponse to ArtistItem
     const convertToArtistItems = (artists: ArtistResponse[]): ArtistItem[] => {
         return artists.map(artist => ({
-            id: artist.id.toString(),
+            id: artist.id, // Keep as number
             name: artist.name,
             avatar_url: artist.avatar_url
         }));
@@ -119,12 +119,12 @@ const FindScreen: React.FC<FindScreenProps> = ({ navigation }) => {
 
     const handlePlaylistPress = async (item: AlbumItem | PlaylistItem) => {
         try {
-            const playlistId = parseInt(item.id);
+            const playlistId = typeof item.id === 'number' ? item.id : parseInt(item.id as any);
             const result = await MusicService.getMusicByPlaylistId(playlistId);
 
             if (result.success && result.data) {
                 const songs = result.data.map((music: MusicResponse) => ({
-                    id: music.id.toString(),
+                    id: music.id, // Keep as number
                     title: music.name,
                     artist: music.artists?.join(', ') || 'Unknown Artist',
                     cover: music.avatar_url,

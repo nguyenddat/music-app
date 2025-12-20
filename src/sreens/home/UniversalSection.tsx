@@ -5,7 +5,7 @@ import { FONTS } from '../../constants/typography';
 
 // Interface cho một item playlist
 interface PlaylistItem {
-    id: string;
+    id: string | number; // Support both for compatibility with mock data
     title: string;
     subtitle: string;
     image: string;
@@ -63,7 +63,7 @@ const UniversalSection: React.FC<UniversalSectionProps> = ({ title, subTitle, da
             <FlatList
                 data={data}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.id.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.listContent}

@@ -1,7 +1,16 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-const SearchResultItem = ({ item }) => {
+interface SearchResultItemProps {
+    item: {
+        imageUrl: string;
+        title: string;
+        type: string;
+        description: string;
+    };
+}
+
+const SearchResultItem = ({ item }: SearchResultItemProps) => {
     // Kiểm tra loại để quyết định bo tròn ảnh hay không
     const isArtist = item.type === 'Artist';
 

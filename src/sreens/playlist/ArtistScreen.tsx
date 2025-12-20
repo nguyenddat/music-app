@@ -146,7 +146,7 @@ const ArtistScreen = () => {
 
         if (musicResponse.success) {
             const mappedSongs = musicResponse.data.map((m: MusicResponse) => ({
-                id: m.id.toString(),
+                id: m.id,
                 title: m.name,
                 artist: m.artists && m.artists.length > 0 ? m.artists.join(', ') : t('unknownArtist'),
                 cover: m.avatar_url || 'https://via.placeholder.com/150',

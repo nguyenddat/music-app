@@ -133,7 +133,7 @@ const ArtistScreen = () => {
             if (response.success) {
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'MainTabs' }],
+                    routes: [{ name: 'MainTabs' as never }],
                 });
             } else {
                 Alert.alert(t('error'), t('saveArtistError'));
